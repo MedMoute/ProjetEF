@@ -1,18 +1,36 @@
-TARGETS:=main
+DEBUG=no
 
-all: ${TARGETS}
+ifeq ($(DEBUG),yes)
+	CFLAGS=-g -c
+else
+	CFLAGS=-c
+endif
 
-main : src/probleme.o src/maillage.o main.o
-	g++ -o main src/probleme.o src/maillage.o main.o
+EXEC=main
+CXX=g++
+LDFLAGS= 
+SRC=src/probleme.cpp src/maillage.cpp src/main.cpp
+OBJ=$(SRC:.cpp=.o)
 
-%.o: %.c
-	g++ -I ./eigen -g  -c $< -o $@ 
-	
+all: ${EXEC}
+
+ifeq ($(DEBUG),yes)
+	@echo "generation en mode debug"
+else
+	@echo "generation en mode release"
+endif
+
+main: $(OBJ)
+	@$(CXX) -o $@ $^ $(LDFLAGS)
+
+main.o: ./include/probleme.h
+
+%.o: %.cpp
+	@$(CXX) $(CFLAGS) $< -o $@  -I ./eigen  
+
 
 
 clean:
-	find -name '*~' -exec rm {}\;
-	find -name '*.o' -exec rm {} \;
+	@find -name '*~' -exec rm {} \;
+	@find -name '*.o' -exec rm {} \;
 
-clobber: clean
-	rm -rf ${TARGETS}
