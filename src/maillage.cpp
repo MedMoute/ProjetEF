@@ -35,8 +35,10 @@ Maillage::Maillage(ifstream& fd) {
                     nodes_coords = new double[3*n_nodes] ;
                     nodes_ref = new int[n_nodes] ;
 
+                    /*Debug : Affiche les sommets en cours d'extraction
                     std::cout<<"Extraction des coordonnees des points :"<<std::endl;
                     std::cout<<"---------------------------------------"<<std::endl;
+                    */
                     // on lit les coords
                     for (int i = 0; i< n_nodes ; i++)
                     {
@@ -44,7 +46,9 @@ Maillage::Maillage(ifstream& fd) {
                         double dummy ;
                         fd >> dummy >> nodes_coords[3*i] >> nodes_coords[3*i+1] >> nodes_coords[3*i+2] ;
                         nodes_ref[i] = 0 ;
+                        /* 2eme partie du Debug
                         std::cout<<"Noeud "<<i<<" : "<< nodes_coords[3*i] <<" | " <<nodes_coords[3*i+1] <<" | " << nodes_coords[3*i+2] <<std::endl;
+                        */
                     }
                     // on passe a la ligne (je ne sais pas pourquoi c'est necessaire
                     getline(fd,line) ;
@@ -69,9 +73,11 @@ Maillage::Maillage(ifstream& fd) {
                     elems_type = new int[2*n_elems] ;
                     this->n_triangles=0;
 
+                    //Debug : Affiche les sommets correspondant au triangle en cours d'extraction
+                    /*
                     std::cout<<"Extraction des elements triangulaires :"<<std::endl;
                     std::cout<<"---------------------------------------"<<std::endl;
-
+                    */
                     // je considere qu'on n'a que des segments et des triangles et je fais un tableau simple
                     elems_sommets = new int[3*n_elems] ;
 
@@ -83,7 +89,7 @@ Maillage::Maillage(ifstream& fd) {
                         getline(fd,line) ;
                         // on compte les espaces pour savoir combien on a de parametres
                         int nspace=0;
-                        for(int j=0; j!=line.size(); ++j)
+                        for(unsigned int j=0; j!=line.size(); ++j)
                             nspace+=( line.at(j)==' ');
                         int ntmp = nspace+1 ;
                         int* tmp = new int[ntmp] ;
@@ -104,10 +110,13 @@ Maillage::Maillage(ifstream& fd) {
                         elems_type[2*i] = tmp[1] ; // type d'elements
                         elems_type[2*i+1] = type2nnodes(tmp[1]);  // nb de sommets pour cet element
 
-                        if (tmp[1]==2)
+
+                        /*2eme partie du debug
+                          *if (tmp[1]==2)
                         {
                             std::cout<<"Element "<<i<<": ";
                         }
+                        */
 
                         // GMSH met les elements du bord en 1er
                         // la ref du 1er element correspond donc a la ref du bord
@@ -120,19 +129,25 @@ Maillage::Maillage(ifstream& fd) {
 
                         for (int j=0;j<elems_type[2*i+1] ; j++) {
                             elems_sommets[3*i+j] = tmp[3+n_tags+j] ;
-                            int b=tmp[3+n_tags+j];
                             if (tmp[1]==2)
                             {
+                                /* 2eme Partie du débug
                                 std::cout<<tmp[3+n_tags+j]<<" | ";
+                                */
                             }
                             // on remplit nodes_ref : le -1 est la pour recoller a la numerotation 0..n-1
                             if(nodes_ref[ tmp[3+n_tags+j]-1 ] == 0)
                                 nodes_ref[ tmp[3+n_tags+j]-1 ] = elems_ref[i] ;
                         }
+
+                        /*3eme et derniere Partie du debug
+                         *
                         if (tmp[1]==2)
                         {
                             std::cout<<std::endl;
                         }
+                        */
+
                         if (elems_type[2*i+1]==3){
                             n_triangles++;
                         }
@@ -173,6 +188,17 @@ Maillage::Maillage(ifstream& fd) {
 
 }
 
+Maillage::~Maillage()
+{
+    delete triangles_sommets;
+    delete nodes_coords;
+    delete nodes_ref;
+    delete elems_ref;
+    delete elems_sommets;
+    delete elems_type;
+    delete n_partition;
+    delete partition_ref;
+}
 
 // correspondance entre le type d'element et le nb de sommets de cet element
 int type2nnodes(int type) {

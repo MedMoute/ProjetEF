@@ -25,4 +25,5 @@ class Maillage {
   // constructeur a partir d'un fichier
   Maillage( ifstream& );
 
+  ~Maillage() ;
 };

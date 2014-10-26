@@ -20,12 +20,10 @@ class Probleme {
   // methodes
  public :
   // constructeur a partir d'un maillage
-  Probleme( Maillage const& ) ;
+  Probleme(Maillage & ) ;
   void affich(Eigen::SparseMatrix<double>);
   
-  ~Probleme() {
-    delete p_K ;
-  };
+  ~Probleme();
 
 
 
