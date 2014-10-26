@@ -19,6 +19,8 @@ Probleme::Probleme(Maillage const& monMaillage)
     tab_local_global = maillage->triangles_sommets;
     
     double *coorneu = maillage->nodes_coords;
+
+    p_K->resize(maillage->n_nodes,maillage->n_nodes);
     
     for(int ind_triangle=0;ind_triangle<nb_triangles;ind_triangle++)
     {
@@ -43,22 +45,18 @@ void Probleme::affich(Eigen::SparseMatrix<double> _mat)
         
         dMat=Eigen::MatrixXd(_mat);
         
-        double* result_point;
-        int dummy=0;
-
-        Eigen::Map<Eigen::MatrixXd>( result_point, dMat.rows(), dMat.cols() ) = dMat;
-
-        for(int i=0;i<=dMat.rows();i++)
+        for(int i=0;i<dMat.rows();i++)
         {
-            for(int j=0;j<=dMat.cols();j++)
+            for(int j=0;j<dMat.cols();j++)
             {
-                std::cout<<result_point[dummy];
-                dummy++;
+                std::cout.precision(2);
+                std::cout<<dMat(i,j)<<"|";
             }
-            
             std::cout<<std::endl;
         }
     }
+
+
     else
     {
         std::cout<<"Matrice de taille zero."<<std::endl;
@@ -67,18 +65,22 @@ void Probleme::affich(Eigen::SparseMatrix<double> _mat)
 
 
 void Probleme::assemblage(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n){
-    
-    for(int sommet_1=0;sommet_1<3;sommet_1++)
-    {
-        int ind_global_1=tab[3*n+sommet_1];
-        
-        for(int sommet_2=0;sommet_2<3;sommet_2++)
-        {
-            int ind_global_2=tab[3*n+sommet_2];
-            std::cout<<std::endl<<" Sommets : "<<ind_global_1<<" | " <<ind_global_2<< std::endl;
 
-          // La ligne qui suit fait planter le tout...probablement un pb d'indice
-            mat.coeffRef(ind_global_1,ind_global_2)+=mat_elem[3*sommet_1+sommet_2];
+    for(int i=0;i<3;i++)
+    {
+        int ind_global_1=tab[3*n+i];
+
+        for(int j=0;j<3;j++)
+        {
+            int ind_global_2=tab[3*n+j];
+            //Debug : Affiche les sommets correspondant à la matrice élémentaire en construction
+            //std::cout<<" Sommets : "<<ind_global_1<<" | " <<ind_global_2<< std::endl;
+
+            // La ligne qui suit fait planter le tout...probablement un pb d'indice
+
+            double AddedCoeff = mat_elem[3*i+j];
+
+            mat.coeffRef(ind_global_1-1,ind_global_2-1)+=AddedCoeff;
 
         }
     }
@@ -102,7 +104,7 @@ void Probleme::mat_K_elem(double *mat_elem,double *coorneu, int *tab_local_globa
     double x3=coorneu[0+ind_pt3*3-3];
     double y3=coorneu[1+ind_pt3*3-3];
     double z3=coorneu[2+ind_pt3*3-3];
-    
+
     double x12 = x2 - x1;
     double y12 = y2 - y1;
     double z12 = z2 - z1;
@@ -112,7 +114,7 @@ void Probleme::mat_K_elem(double *mat_elem,double *coorneu, int *tab_local_globa
     double x23 = x3 - x2;
     double y23 = y3 - y2;
     double z23 = z3 - z2;
-    
+
     double tab_interm[] = {-y23,x23,y13,-x13,-y12,x12};
 
     // Le calcul de la méthode qui suit semble être faux...
@@ -127,22 +129,22 @@ void Probleme::mat_K_elem(double *mat_elem,double *coorneu, int *tab_local_globa
 
     double aire_triangle = sqrt(s*(s-a)*(s-b)*(s-c));
 
-    std::cout<<std::endl<< "Aire du triangle : "<<aire_triangle<<std::endl;
+    //std::cout<<std::endl<< "Aire du triangle : "<<aire_triangle<<std::endl;
 
     //rajouter une erreur si l'aire du triangle est nulle
     //A partir de maintenant on considere que la troisieme coord est toujours nulle
 
-    std::cout <<std::endl<< "On affiche la matrice elementaire"<<std::endl;
+    //std::cout <<std::endl<< "On affiche la matrice elementaire"<<std::endl;
     for(int i=0;i<3;i++)
     {
         for(int j=0;j<3;j++)
         {
             mat_elem[3*i+j]=(1/(4*aire_triangle))*(tab_interm[2*i]*tab_interm[2*j]+tab_interm[2*i+1]*tab_interm[2*j+1]);
-            std::cout<<mat_elem[3*i+j]<<" | ";
+            //   std::cout<<mat_elem[3*i+j]<<" | ";
         }
-        std::cout<<std::endl;
+        // std::cout<<std::endl;
     }
-}	  
+}
 
 
 
