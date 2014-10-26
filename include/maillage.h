@@ -11,6 +11,7 @@ class Maillage {
   int n_nodes ;     // nb de noeuds
   int n_elems ;     // nb d'elements 
   int n_triangles ; // nb de triangles parmi les elements
+  int nb_partitions;
   double* nodes_coords ; // coord. des noeuds
   int* nodes_ref ;   // ref. des noeuds
   int* elems_type ;  // type de chaque element et nb de sommets

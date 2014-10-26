@@ -46,6 +46,7 @@ Maillage::Maillage(ifstream& fd) {
                         double dummy ;
                         fd >> dummy >> nodes_coords[3*i] >> nodes_coords[3*i+1] >> nodes_coords[3*i+2] ;
                         nodes_ref[i] = 0 ;
+
                         /* 2eme partie du Debug
                         std::cout<<"Noeud "<<i<<" : "<< nodes_coords[3*i] <<" | " <<nodes_coords[3*i+1] <<" | " << nodes_coords[3*i+2] <<std::endl;
                         */
@@ -72,6 +73,7 @@ Maillage::Maillage(ifstream& fd) {
                     partition_ref = new int[n_elems] ;
                     elems_type = new int[2*n_elems] ;
                     this->n_triangles=0;
+                    nb_partitions=0;
 
                     //Debug : Affiche les sommets correspondant au triangle en cours d'extraction
                     /*
@@ -124,6 +126,10 @@ Maillage::Maillage(ifstream& fd) {
                         if (n_tags > 2) {
                             elems_ref[i] = tmp[3] ;
                             n_partition[i] = tmp[5] ;
+                            if (tmp[5]>nb_partitions)
+                            {
+                                nb_partitions=tmp[5];
+                            }
                             partition_ref[i] = tmp[6] ;
                         }
 

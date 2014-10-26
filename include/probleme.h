@@ -33,4 +33,7 @@ class Probleme {
   void assemblage(Eigen::SparseMatrix<double> &, double *, int*, int) ;
   void mat_K_elem(double *, double *, int *, int);
 
+  void assemblage_par(Eigen::SparseMatrix<double> &, double *, int*, int) ;
+  void mat_K_elem_par(double *, double *, int *, int);
+
 } ;

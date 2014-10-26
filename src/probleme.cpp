@@ -17,9 +17,7 @@ Probleme::Probleme(Maillage & monMaillage)
     int *tab_local_global;
     tab_local_global = new int[3*nb_triangles];
     tab_local_global = maillage->triangles_sommets;
-    
     double *coorneu = maillage->nodes_coords;
-
     p_K->resize(maillage->n_nodes,maillage->n_nodes);
     
     for(int ind_triangle=0;ind_triangle<nb_triangles;ind_triangle++)
@@ -27,8 +25,20 @@ Probleme::Probleme(Maillage & monMaillage)
         double *p_K_elem;
         p_K_elem = new double[9];
 
-        mat_K_elem(p_K_elem,coorneu,tab_local_global,ind_triangle);
-        assemblage(*p_K,p_K_elem,tab_local_global,ind_triangle);
+        if (maillage->nb_partitions==2)
+        {
+            //Résolution séquentielle et assemblage "simple"
+            mat_K_elem(p_K_elem,coorneu,tab_local_global,ind_triangle);
+            assemblage(*p_K,p_K_elem,tab_local_global,ind_triangle);
+            //Résolution séquentielle :TODO
+        }
+        else
+        {
+            mat_K_elem_par(p_K_elem,coorneu,tab_local_global,ind_triangle);
+            assemblage_par(*p_K,p_K_elem,tab_local_global,ind_triangle);
+        }
+
+
         delete p_K_elem;
         p_K_elem=0;
         
@@ -153,5 +163,12 @@ void Probleme::mat_K_elem(double *mat_elem,double *coorneu, int *tab_local_globa
     }
 }
 
+void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)
+{
+    //TODO
+}
 
-
+void Probleme::mat_K_elem_par(double *mat_elem,double *coorneu, int *tab_local_global, int ind_triangle)
+{
+    //TODO Aussi
+}
