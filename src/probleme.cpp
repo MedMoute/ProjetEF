@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <math.h>
 
-Probleme::Probleme(Maillage const& monMaillage)
+Probleme::Probleme(Maillage & monMaillage)
 {
-    *maillage=monMaillage;
     uexa = new VectorXd;
+    maillage = &monMaillage;
     g = new VectorXd;
     u = new VectorXd;
     felim = new VectorXd;
@@ -37,8 +37,21 @@ Probleme::Probleme(Maillage const& monMaillage)
     
 }
 
+Probleme::~Probleme()
+{
+    delete p_K;
+    delete uexa ;
+    delete g ;
+    delete u ;
+    delete felim ;
+}
+
 void Probleme::affich(Eigen::SparseMatrix<double> _mat)
 {
+
+    std::cout<<std::endl<<"Affichage de la matrice de rigidite :";
+    std::cout<<std::endl<<"-------------------------------------"<<std::endl;
+
     if (_mat.size()!=0)
     {
         Eigen::MatrixXd dMat;
@@ -63,7 +76,6 @@ void Probleme::affich(Eigen::SparseMatrix<double> _mat)
     }
 }
 
-
 void Probleme::assemblage(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n){
 
     for(int i=0;i<3;i++)
@@ -75,9 +87,6 @@ void Probleme::assemblage(Eigen::SparseMatrix<double> & mat, double* mat_elem, i
             int ind_global_2=tab[3*n+j];
             //Debug : Affiche les sommets correspondant à la matrice élémentaire en construction
             //std::cout<<" Sommets : "<<ind_global_1<<" | " <<ind_global_2<< std::endl;
-
-            // La ligne qui suit fait planter le tout...probablement un pb d'indice
-
             double AddedCoeff = mat_elem[3*i+j];
 
             mat.coeffRef(ind_global_1-1,ind_global_2-1)+=AddedCoeff;
@@ -85,8 +94,6 @@ void Probleme::assemblage(Eigen::SparseMatrix<double> & mat, double* mat_elem, i
         }
     }
 }
-
-
 
 void Probleme::mat_K_elem(double *mat_elem,double *coorneu, int *tab_local_global, int ind_triangle){
 
