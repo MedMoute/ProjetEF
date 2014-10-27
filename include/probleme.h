@@ -1,5 +1,6 @@
 #include "maillage.h"
 #include <Eigen/Sparse>
+#include <Eigen/SparseCholesky>
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd ;
 
@@ -22,6 +23,7 @@ class Probleme {
   // constructeur a partir d'un maillage
   Probleme(Maillage & ) ;
   void affich(Eigen::SparseMatrix<double>);
+  void affichUnElem(Eigen::SparseMatrix<double>, int, int);
   
   ~Probleme();
 
@@ -30,7 +32,7 @@ class Probleme {
 
   void pelim(int) ;
 
-  void assemblage(Eigen::SparseMatrix<double> &, double *, int*, int) ;
-  void mat_K_elem(double *, double *, int *, int);
+  double base_loc(int, double, double);
+  double calcul_f(double, double);
 
 } ;
