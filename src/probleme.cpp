@@ -139,6 +139,21 @@ Probleme::Probleme(Maillage & monMaillage)
             }
         }
 
+        //Je mets en commentaire cette partie ou on decide si on fait en sequentiel ou pas
+       /* if (maillage->nb_partitions==2)
+        {
+            //Résolution séquentielle et assemblage "simple"
+            mat_K_elem(p_K_elem,coorneu,tab_local_global,ind_triangle);
+            assemblage(*p_K,p_K_elem,tab_local_global,ind_triangle);
+            //Résolution séquentielle :TODO
+        }
+        else
+        {
+            mat_K_elem_par(p_K_elem,coorneu,tab_local_global,ind_triangle);
+            assemblage_par(*p_K,p_K_elem,tab_local_global,ind_triangle);
+        }
+        */
+
         delete p_K_elem;
         p_K_elem=0;
     }
@@ -246,4 +261,14 @@ double Probleme::calcul_f(double coor_1, double coor_2)
     return(5);
 }
 
+/*void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)
+{
+    //TODO
+}
 
+
+void Probleme::mat_K_elem_par(double *mat_elem,double *coorneu, int *tab_local_global, int ind_triangle)
+{
+    //TODO Aussi
+}
+*/

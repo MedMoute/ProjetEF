@@ -35,4 +35,7 @@ class Probleme {
   double base_loc(int, double, double);
   double calcul_f(double, double);
 
+  void assemblage_par(Eigen::SparseMatrix<double> &, double *, int*, int) ;
+  void mat_K_elem_par(double *, double *, int *, int);
+
 } ;
