@@ -35,6 +35,8 @@ Probleme::Probleme(Maillage & monMaillage)
             g->coeffRef(ind_node,0)+=addedCoeff;
         }
     }
+    std::cout<<"vecteur conditions aux limites"<<endl;
+    affichVector(*g);
 
     felim->resize(maillage->n_nodes,1);
 
@@ -166,12 +168,20 @@ Probleme::Probleme(Maillage & monMaillage)
         p_K_elem=0;
     }
 
-    affich(*p_K);
+    std::cout<<"second membre avant pseudo elimination"<<endl;
+    affichVector(*felim);
+
+
+
+    //affich(*p_K);
+
+    Eigen::SparseMatrix<double> K_err = *p_K;
 
     //le second membre total, prenant en compte les f et g de la formulation variationnelle
     //felim a ete obtenu par formules de quadrature, le produit p_K*g montre que le second membre en g est obtenu par interpolation
     *felim=*felim-(*p_K) * (*g);
-
+    std::cout<<"second membre dans la reso du systeme avant pseudi elimin"<<endl;
+    affichVector(*felim);
     //algorithme de pseudo elimination
     for(int i=0;i<maillage->n_nodes;i++)
     {
@@ -194,7 +204,9 @@ Probleme::Probleme(Maillage & monMaillage)
         }
     }
 
-    affich(*p_K);
+    //affich(*p_K);
+    std::cout<<"second membre dans la resolution du systeme lineaire"<<endl;
+    affichVector(*felim);
 
     Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
     solver.compute(*p_K);
@@ -203,7 +215,13 @@ Probleme::Probleme(Maillage & monMaillage)
     //la solution finale du probleme non homogene
     *u+=*g;
 
-    double erreurH1=((*u-*uexa).dot((*p_K)*((*u-*uexa))));
+    std::cout<<"la solution finale"<<endl;
+    affichVector(*u);
+
+    std::cout<<"l'erreur"<<endl;
+    affichVector(*u-*uexa);
+
+    double erreurH1=((*u-*uexa).dot(K_err*((*u-*uexa))));
     cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
     
 }
@@ -217,22 +235,14 @@ Probleme::~Probleme()
     delete felim ;
 }
 
-void Probleme::affichUnElem(Eigen::SparseMatrix<double> _mat, int i, int j)
+void Probleme::affichVector(VectorXd V)
 {
-    if (_mat.size()!=0)
-    {
-        Eigen::MatrixXd dMat;
 
-        dMat=Eigen::MatrixXd(_mat);
+    for(int i=0;i<V.rows();i++)
+    {
         std::cout.precision(2);
-        std::cout<<dMat(i,j);
+        std::cout<<V(i,0);
         std::cout<<std::endl;
-    }
-
-
-    else
-    {
-        std::cout<<"Matrice de taille zero."<<std::endl;
     }
 }
 
@@ -285,7 +295,7 @@ double Probleme::calcul_uexa(double coor_1, double coor_2)
 
 double Probleme::calcul_g(double coor_1, double coor_2)
 {
-    return(sin(PI*coor_1)*sin(PI*coor_2));
+    return(0);
 }
 
 /*void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)

@@ -23,7 +23,7 @@ class Probleme {
   // constructeur a partir d'un maillage
   Probleme(Maillage & ) ;
   void affich(Eigen::SparseMatrix<double>);
-  void affichUnElem(Eigen::SparseMatrix<double>, int, int);
+  void affichVector(VectorXd);
   
   ~Probleme();
 

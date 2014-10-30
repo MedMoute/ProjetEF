@@ -3,7 +3,7 @@
 int main()
 {
     ifstream FILE;
-    FILE.open("./fichierTest/testpart.msh", ios::in);
+    FILE.open("./fichierTest/testPart.msh", ios::in);
 
     if (FILE.fail())
     {
