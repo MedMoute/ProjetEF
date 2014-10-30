@@ -166,26 +166,26 @@ Maillage::Maillage(ifstream& fd) {
                         cout << "Probleme de lecture du fichier maillage" << endl ;
                         cout << "Mot cle Nodes non suivi de EndNodes" << endl ;
                     }
-                    std::cout<<std::endl;
-                    std::cout<<"On reconstruit les triangles avec les sommets correspondants"<<std::endl;
-                    std::cout<<"------------------------------------------------------------"<<std::endl;
+                    //std::cout<<std::endl;
+                    //std::cout<<"On reconstruit les triangles avec les sommets correspondants"<<std::endl;
+                    //std::cout<<"------------------------------------------------------------"<<std::endl;
 
                     triangles_sommets = new int[3*n_triangles];
                     for (int k=0;k<n_triangles;k++)
                     {
-                        std::cout<<"Triangle "<<k<<": ";
+                        //std::cout<<"Triangle "<<k<<": ";
                         for (int l=0;l<3;l++)
                         {
 
 
                             triangles_sommets[3*k+l]=elems_sommets[3*k+l+3*(n_elems-n_triangles)];
-                            int a=elems_sommets[3*k+l+3*(n_elems-n_triangles)];
-                            std::cout<<a<<" | ";
+                            //int a=elems_sommets[3*k+l+3*(n_elems-n_triangles)];
+                            //std::cout<<a<<" | ";
 
 
                             //attention on suppose qu'il n'y a que des segments et des triangles, et que les segments sont tous avant les triangles dans le .msh
                         }
-                        std::cout<<std::endl;
+                        //std::cout<<std::endl;
                     }
                 }
             }

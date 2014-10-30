@@ -16,7 +16,7 @@ int main()
     Maillage mon_maillage=Maillage(FILE);
     Probleme mon_probleme=Probleme(mon_maillage);
 
-    mon_probleme.affich(*(mon_probleme.p_K));
+    //mon_probleme.affich(*(mon_probleme.p_K));
 }
 
 

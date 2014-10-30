@@ -1,6 +1,7 @@
 #include "../include/probleme.h"
 #include <stdio.h>
 #include <math.h>
+#define PI 3.14159
 
 Probleme::Probleme(Maillage & monMaillage)
 {
@@ -13,6 +14,13 @@ Probleme::Probleme(Maillage & monMaillage)
     p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
     p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
+    uexa->resize(maillage->n_nodes,1);
+
+    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
+    {
+        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
+    }
+
     g->resize(maillage->n_nodes,1);
 
     //on initialise les conditions au bord, dans un premier temps a une constante
@@ -21,9 +29,9 @@ Probleme::Probleme(Maillage & monMaillage)
     {
         if (maillage->nodes_ref[ind_node]!=0)
         {
-            //double x=maillage->nodes_coords[3*ind_node+0];
-            //double y=maillage->nodes_coords[3*ind_node+1];
-            double addedCoeff = 2;
+            double x=maillage->nodes_coords[3*ind_node+0];
+            double y=maillage->nodes_coords[3*ind_node+1];
+            double addedCoeff = calcul_g(x,y);
             g->coeffRef(ind_node,0)+=addedCoeff;
         }
     }
@@ -158,6 +166,8 @@ Probleme::Probleme(Maillage & monMaillage)
         p_K_elem=0;
     }
 
+    affich(*p_K);
+
     //le second membre total, prenant en compte les f et g de la formulation variationnelle
     //felim a ete obtenu par formules de quadrature, le produit p_K*g montre que le second membre en g est obtenu par interpolation
     *felim=*felim-(*p_K) * (*g);
@@ -165,8 +175,9 @@ Probleme::Probleme(Maillage & monMaillage)
     //algorithme de pseudo elimination
     for(int i=0;i<maillage->n_nodes;i++)
     {
-        if (maillage->nodes_ref[i]!=0)
+        if (maillage->nodes_ref[i]==1)
         {
+            std::cout<<"le noeud  "<<i<<"est sur le bord"<<endl;
             //seuls les elements du bord sur felim doivent etre changes
             double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
             felim->coeffRef(i,0)=nouvCoeff;
@@ -183,12 +194,17 @@ Probleme::Probleme(Maillage & monMaillage)
         }
     }
 
+    affich(*p_K);
+
     Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
     solver.compute(*p_K);
 
     *u=solver.solve(*felim);
     //la solution finale du probleme non homogene
     *u+=*g;
+
+    double erreurH1=((*u-*uexa).dot((*p_K)*((*u-*uexa))));
+    cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
     
 }
 
@@ -237,6 +253,7 @@ void Probleme::affich(Eigen::SparseMatrix<double> _mat)
             for(int j=0;j<dMat.cols();j++)
             {
                 std::cout.precision(2);
+
                 std::cout<<dMat(i,j)<<"|";
             }
             std::cout<<std::endl;
@@ -258,7 +275,17 @@ double Probleme::base_loc(int j, double coor_1, double coor_2)
 
 double Probleme::calcul_f(double coor_1, double coor_2)
 {
-    return(5);
+    return(pow(PI,2)*sin(PI*coor_1)*sin(PI*coor_2));
+}
+
+double Probleme::calcul_uexa(double coor_1, double coor_2)
+{
+    return(sin(PI*coor_1)*sin(coor_2*PI));
+}
+
+double Probleme::calcul_g(double coor_1, double coor_2)
+{
+    return(sin(PI*coor_1)*sin(PI*coor_2));
 }
 
 /*void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)
