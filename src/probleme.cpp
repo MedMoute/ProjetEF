@@ -14,6 +14,7 @@ Probleme::Probleme(Maillage & monMaillage)
     p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
     p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
+
     uexa->resize(maillage->n_nodes,1);
 
     for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
@@ -82,14 +83,14 @@ Probleme::Probleme(Maillage & monMaillage)
         //Assemblage du second membre F par la formule de quadrature Gauss Lobatto
 
         //On definit les cinq coordonnees utiles dans la formule
-        double s_0=1/3;
+        double s_0=1./3;
         double s_1=(6-sqrt(15))/21;
         double s_2=(6+sqrt(15))/21;
         double s_3=(9+2*sqrt(15))/21;
         double s_4=(9-2*sqrt(15))/21;
 
         //et les trois poids
-        double eta_0=9/80;
+        double eta_0=9./80;
         double eta_1=(155-sqrt(15))/2400;
         double eta_2=(155+sqrt(15))/2400;
 
@@ -226,15 +227,6 @@ Probleme::Probleme(Maillage & monMaillage)
     
 }
 
-Probleme::~Probleme()
-{
-    delete p_K;
-    delete uexa ;
-    delete g ;
-    delete u ;
-    delete felim ;
-}
-
 void Probleme::affichVector(VectorXd V)
 {
 
@@ -285,7 +277,7 @@ double Probleme::base_loc(int j, double coor_1, double coor_2)
 
 double Probleme::calcul_f(double coor_1, double coor_2)
 {
-    return(pow(PI,2)*sin(PI*coor_1)*sin(PI*coor_2));
+    return(2*pow(PI,2)*sin(PI*coor_1)*sin(PI*coor_2));
 }
 
 double Probleme::calcul_uexa(double coor_1, double coor_2)
@@ -295,7 +287,7 @@ double Probleme::calcul_uexa(double coor_1, double coor_2)
 
 double Probleme::calcul_g(double coor_1, double coor_2)
 {
-    return(0);
+    return(0*coor_1+0*coor_2);
 }
 
 /*void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)
@@ -309,3 +301,18 @@ void Probleme::mat_K_elem_par(double *mat_elem,double *coorneu, int *tab_local_g
     //TODO Aussi
 }
 */
+Probleme::~Probleme()
+{
+    delete uexa;
+    uexa=0;
+    delete g;
+    g=0;
+    delete felim;
+    felim=0;
+    delete p_K;
+    p_K=0;
+    delete p_Kelim;
+    p_Kelim=0;
+    delete u;
+    u=0;
+}

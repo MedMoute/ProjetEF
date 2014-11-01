@@ -173,19 +173,19 @@ Maillage::Maillage(ifstream& fd) {
                     triangles_sommets = new int[3*n_triangles];
                     for (int k=0;k<n_triangles;k++)
                     {
-                        //std::cout<<"Triangle "<<k<<": ";
+                        std::cout<<"Triangle "<<k<<": ";
                         for (int l=0;l<3;l++)
                         {
 
 
                             triangles_sommets[3*k+l]=elems_sommets[3*k+l+3*(n_elems-n_triangles)];
-                            //int a=elems_sommets[3*k+l+3*(n_elems-n_triangles)];
-                            //std::cout<<a<<" | ";
+                            int a=elems_sommets[3*k+l+3*(n_elems-n_triangles)];
+                            std::cout<<a<<" | ";
 
 
                             //attention on suppose qu'il n'y a que des segments et des triangles, et que les segments sont tous avant les triangles dans le .msh
                         }
-                        //std::cout<<std::endl;
+                        std::cout<<std::endl;
                     }
                 }
             }
@@ -196,14 +196,14 @@ Maillage::Maillage(ifstream& fd) {
 
 Maillage::~Maillage()
 {
-    delete triangles_sommets;
-    delete nodes_coords;
-    delete nodes_ref;
-    delete elems_ref;
-    delete elems_sommets;
-    delete elems_type;
-    delete n_partition;
-    delete partition_ref;
+    delete [] triangles_sommets;
+    delete [] nodes_coords;
+    delete [] nodes_ref;
+    delete [] elems_ref;
+    delete [] elems_sommets;
+    delete [] elems_type;
+    delete [] n_partition;
+    delete [] partition_ref;
 }
 
 // correspondance entre le type d'element et le nb de sommets de cet element
