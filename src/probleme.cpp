@@ -19,6 +19,10 @@ Probleme::Probleme(Maillage & monMaillage)
     partition_noeud = new int[maillage->n_nodes];
 
     //vecteur
+    vector<vector<int> > voisins_interface;
+    voisins_interface.resize(nb_procs-1);
+    vector<vector<int> > voisins_partition;
+    voisins_partition.resize(nb_procs-1);
 
     for (ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
     {
@@ -26,7 +30,7 @@ Probleme::Probleme(Maillage & monMaillage)
         int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
         int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2];
 
-        numero_partition_triangle=maillage->partition_ref[ind_triangle];
+        int numero_partition_triangle=maillage->partition_ref[ind_triangle];
 
         if (partition_noeud[ind_pt1]=0)
         {
@@ -64,19 +68,39 @@ Probleme::Probleme(Maillage & monMaillage)
             partition_noeud[ind_pt3]=3;
         }
 
-    }
-
-    if (rang==0)
-    {
-        elems_a_recevoir_from_partition = new vector<vector<int> >;
-        for (int i=1;i<nb_;i++)
+        if ((partition_noeud[ind_pt1]==3 || partition_noeud[ind_pt2]==3 || partition_noeud[ind_pt3]==3) &&
+            (!(partition_noeud[ind_pt1]==3 && partition_noeud[ind_pt2]==3 && partition_noeud[ind_pt3]==3)))
         {
-
+            if (partition_noeud[ind_pt2]!=3)
+            {
+                voisins_interface[partition_noeud[ind_pt2]].push_back(ind_pt2);
+            }
+            else
+            {
+                voisins_partition[numero_partition_triangle].push_back(ind_pt2);
+            }
+            if (partition_noeud[ind_pt3]!=3)
+            {
+                voisins_interface[partition_noeud[ind_pt3]].push_back(ind_pt3);
+            }
+            else
+            {
+                voisins_partition[numero_partition_triangle].push_back(ind_pt3);
+            }
+            if (partition_noeud[ind_pt1]!=3)
+            {
+                voisins_interface[partition_noeud[ind_pt1]].push_back(ind_pt1);
+            }
+            else
+            {
+                voisins_partition[numero_partition_triangle].push_back(ind_pt1);
+            }
         }
-    }
-    else
+     }
+    std::sort (voisins_partition.begin(),voisins_partition.end());
+    for (int i=0;i<nb_procs-1;i++)
     {
-        elems_a_recevoir_from_interface = new vector<int>;
+        td::sort (voisins_interface[i].begin(),voisins_interface[i].end());
     }
 
     uexa->resize(maillage->n_nodes,1);
@@ -302,6 +326,42 @@ Probleme::Probleme(Maillage & monMaillage)
     double erreurH1=((*u-*uexa).dot(K_err*((*u-*uexa))));
     cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
     */
+}
+
+void Probleme::communication(VectorXd u)
+{
+    if (rang=0)
+    {
+        const int etiquette = 100;
+        MPI_Status statut;
+        vector<vector<double> > valeurs_a_envoyer;
+        vector<vector<double> > valeurs_a_recevoir;
+        valeurs_a_envoyer.resize(nb_procs-1);
+        valeurs_a_recevoir.resize(nb_procs-1);
+        for (int i=1;i<nb_procs;i++)
+        {
+            for (int j=0;j<voisins_partition[i].size();j++)
+            {
+                valeurs_a_envoyer[i].push_back(u->coeffRef(voisins_partition[i][j],0));
+            }
+            MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
+            MPI_Recv(&valeurs_a_recevoir[i],voisins_interface[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD,&statut);
+        }
+    }
+    else
+    {
+        const int etiquette = 200;
+        MPI_Status statut;
+        vector<double> valeurs_a_envoyer;
+        vector<double> valeurs_a_recevoir;
+        for (int i=0;i<voisins_interface[rang].size();i++)
+        {
+            valeurs_a_envoyer.push_back(u->coeffRef(voisins_interface[rang][i],0));
+        }
+        MPI_Send(&valeurs_a_envoyer,valeurs_a_envoyer.size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD);
+        MPI_Recv(&valeurs_a_recevoir,voisins_partition[rang].size(),MPI_DOUBLE,0,MPI_COMM_WORLD,&statut);
+    }
+
 }
 
 void Probleme::affichVector(VectorXd V)
