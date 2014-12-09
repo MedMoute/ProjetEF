@@ -24,7 +24,7 @@ class Maillage {
   int* partition_ref; //tmp[6] = 6eme tag de l'element ->partition "principale" de l'élément
 
   //TODO
-  std::map<int,int>** partition_map_voisins; // Pointeur vers des tableaux de Map (indice du point,partition du point)
+  std::map<int,int>* partition_map_voisins; // Pointeur vers des tableaux de Map (indice du point,partition du point)
                                      // qui à chaque point associe la map des voisins et leur partition associée avec 0 pour
                                      // l'interface
 

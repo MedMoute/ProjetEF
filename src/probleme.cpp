@@ -14,9 +14,9 @@ Probleme::Probleme(Maillage & monMaillage)
 
     p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
     p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
-
+/*
     //vecteur qui a en position i la partition a laquelle appartient le noeud i
-    partition_noeud = new int[maillage->n_nodes];
+    int* partition_noeud = new int[maillage->n_nodes];
 
     //vecteur
 
@@ -73,7 +73,7 @@ Probleme::Probleme(Maillage & monMaillage)
     for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++){
         uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
     }
-
+    */
     g->resize(maillage->n_nodes,1);
 
     //on initialise les conditions au bord, dans un premier temps a une constante
@@ -254,10 +254,12 @@ Probleme::Probleme(Maillage & monMaillage)
     //affichVector(*felim);
 
     /* Schema iteratif en temps */
+
+    /*
     int it = 0;
     convergence = faux;
 
-    /*
+
     while ( !(convergence) && (it < it_max) ) {
         it = it+1;
 
@@ -279,7 +281,7 @@ Probleme::Probleme(Maillage & monMaillage)
 
     std::cout<<"l'erreur"<<endl;
     affichVector(*u-*uexa);
-    */
+
     double erreurH1=((*u-*uexa).dot(K_err*((*u-*uexa))));
     cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
     */

@@ -6,7 +6,8 @@
 int type2nnodes(int) ;
 
 Maillage::Maillage(ifstream& fd) {
-
+    
+    std::map<char,int>::iterator it;
 
     // POUR LES FICHIERS VERSION 2.2 SEULEMENT
     string line ;
@@ -17,7 +18,7 @@ Maillage::Maillage(ifstream& fd) {
             getline (fd,line);
             // on regarde si on a un mot cle
             if( line[0] == '$' ) {
-
+                
                 if( line.compare("$MeshFormat")==0 ) {
                     // je lis le format mais je n'en fais rien
                     getline(fd,line) ;
@@ -35,7 +36,7 @@ Maillage::Maillage(ifstream& fd) {
                     // on alloue le tableau de coord des noeuds
                     nodes_coords = new double[3*n_nodes] ;
                     nodes_ref = new int[n_nodes] ;
-
+                    
                     // on lit les coords
                     for (int i = 0; i< n_nodes ; i++)
                     {
@@ -53,7 +54,7 @@ Maillage::Maillage(ifstream& fd) {
                         cout << "Mot cle Nodes non suivi de EndNodes" << endl ;
                         abort() ;
                     }
-
+                    
                 }
                 else if( line.compare("$Elements")==0 ) {
                     // on lit le nb d'elements
@@ -65,16 +66,15 @@ Maillage::Maillage(ifstream& fd) {
                     n_partition = new int[n_elems] ;
                     partition_ref = new int[n_elems] ;
                     elems_type = new int[2*n_elems] ;
+                    partition_map_voisins = new std::map<int,int>[n_elems] ;
                     this->n_triangles=0;
                     nb_partitions=0;
-
+                    
                     // je considere qu'on n'a que des segments et des triangles et je fais un tableau simple
                     elems_sommets = new int[3*n_elems] ;
-
+                    
                     for( int i=0; i<n_elems ; i++)
                     {
-
-
                         // on ne sais pas combien il y a de parametres sur chaque ligne : on lit ligne par ligne
                         getline(fd,line) ;
                         // on compte les espaces pour savoir combien on a de parametres
@@ -99,8 +99,8 @@ Maillage::Maillage(ifstream& fd) {
                         // on remplit les membres de maillage
                         elems_type[2*i] = tmp[1] ; // type d'elements
                         elems_type[2*i+1] = type2nnodes(tmp[1]);  // nb de sommets pour cet element
-
-
+                        
+                        
                         // GMSH met les elements du bord en 1er
                         // la ref du 1er element correspond donc a la ref du bord
                         int n_tags = tmp[2] ;
@@ -113,7 +113,7 @@ Maillage::Maillage(ifstream& fd) {
                             }
                             partition_ref[i] = tmp[6] ;
                         }
-
+                        
                         for (int j=0;j<elems_type[2*i+1] ; j++) {
                             elems_sommets[3*i+j] = tmp[3+n_tags+j] ;
                             if (tmp[1]==2)
@@ -123,12 +123,34 @@ Maillage::Maillage(ifstream& fd) {
                             if(nodes_ref[ tmp[3+n_tags+j]-1 ] == 0)
                                 nodes_ref[ tmp[3+n_tags+j]-1 ] = elems_ref[i] ;
                         }
-
+                        
                         if (elems_type[2*i+1]==3){
                             n_triangles++;
                         }
 
-                        // TODO : Remplir partition_map et partition_map_voisins
+                        for (int j=0;j<elems_type[2*i+1];j++) { //Boucle sur les sommets de l'element
+                            // On analyse les nodes par la fin de tmp
+
+                            for (int k=1;k<elems_type[2*i+1];k++) //Boucle sur les 'autres' sommets de l'element
+                            {
+                                int a =tmp[ntmp-(j+1)];
+                                if(partition_map_voisins[tmp[ntmp-(j+1)]].count(tmp[ntmp-(k+1)]==0)){//Point non présent dans la map du point en cours d'analyse
+                                    partition_map_voisins[tmp[ntmp-(j+1)]].insert(make_pair(tmp[ntmp-(k+1)],tmp[6])); //insertion
+                                }
+                                else {//Point déja présent dans la map
+                                    if(partition_map_voisins[tmp[ntmp-(j+1)]].find(tmp[ntmp-(k+1)])->second !=tmp[6]) { //Valeur non identique
+                                        partition_map_voisins[tmp[ntmp-(j+1)]].erase( partition_map_voisins[tmp[ntmp-(j+1)]].find(tmp[ntmp-(k+1)]));
+                                        partition_map_voisins[tmp[ntmp-(j+1)]].insert(make_pair( tmp[ntmp-(k+1)],0));
+                                    }
+                                    else{
+                                    }
+
+                                }
+
+                            }
+                        }
+
+                        // TODO : Remplir partition_map_voisins
                         /*
                          *Methode : lors de la lecture des élément par le parser, les tags donnent une partition principale
                          *dans le cas ou le point d'indice i n'est pas mappé i.e. partition_map[i].empty vrai,on associe les
@@ -138,14 +160,10 @@ Maillage::Maillage(ifstream& fd) {
                          *Si un point voisin est déja mappé, mais avec une valeur différente, cela veut dire qu'il est sur l'interface
                          *
                          *Une fois la boucle effectuée sur tous les points, on peut merger toutes les maps et on obtient une map*<int,int>
-                         *donnant le (indice,partition) global [
+                         *donnant le (indice,partition) global
                         */
 
                         //initialiser partition_map_voisins
-                        for (int j=0;j<n_elems;j++) {
-                            if (partition_map_voisins[tmp[3]]->empty())
-
-                        }
 
 
                         delete [] tmp ;
