@@ -1,7 +1,19 @@
-#include "../include/probleme.h"
+#include <iostream>
+#include <mpi.h>
+#include <stdio.h>
+#include "../include/parallel.h"
+#include "../include/calcul.h"
 
-int main()
+using namespace std;
+
+int main(int argc, int *argv[])
 {
+    int rang;
+    static int nb_procs;
+    MPI_Init(&argc,&argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rang);
+    MPI_Comm_size(MPI_COMM_WOLRD, &nb_procs);
+
     ifstream FILE;
     FILE.open("./fichierTest/testPart.msh", ios::in);
 
@@ -13,11 +25,16 @@ int main()
         return EXIT_FAILURE;
     }
 
-    Maillage mon_maillage=Maillage(FILE);
-    Probleme mon_probleme=Probleme(mon_maillage);
+    if (rang == 0)
+    {
+        std::cout<<"Execution code poisson avec "<<nb_procs<<" processus MPI\n"<<std::endl;
+    }
 
-    //mon_probleme.affich(*(mon_probleme.p_K));
+     Maillage mon_maillage=Maillage(FILE);
+     Probleme mon_probleme=Probleme(mon_maillage);
+
+
+
 }
-
 
 
