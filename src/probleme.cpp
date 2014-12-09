@@ -66,7 +66,18 @@ Probleme::Probleme(Maillage & monMaillage)
 
     }
 
-    voisins_interface = new int[maillage->]
+    if (rang==0)
+    {
+        elems_a_recevoir_from_partition = new vector<vector<int> >;
+        for (int i=1;i<nb_;i++)
+        {
+
+        }
+    }
+    else
+    {
+        elems_a_recevoir_from_interface = new vector<int>;
+    }
 
     uexa->resize(maillage->n_nodes,1);
 
