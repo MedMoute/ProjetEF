@@ -17,8 +17,7 @@ Probleme::Probleme(Maillage & monMaillage)
 
     uexa->resize(maillage->n_nodes,1);
 
-    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
-    {
+    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++){
         uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
     }
 
@@ -26,10 +25,8 @@ Probleme::Probleme(Maillage & monMaillage)
 
     //on initialise les conditions au bord, dans un premier temps a une constante
 
-    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
-    {
-        if (maillage->nodes_ref[ind_node]!=0)
-        {
+    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++){
+        if (maillage->nodes_ref[ind_node]!=0){
             double x=maillage->nodes_coords[3*ind_node+0];
             double y=maillage->nodes_coords[3*ind_node+1];
             double addedCoeff = calcul_g(x,y);
@@ -41,9 +38,7 @@ Probleme::Probleme(Maillage & monMaillage)
 
     felim->resize(maillage->n_nodes,1);
 
-
-    for(int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
-    {
+    for(int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++){
         int ind_pt1=maillage->triangles_sommets[3*ind_triangle];
         int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
         int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2];
@@ -83,6 +78,7 @@ Probleme::Probleme(Maillage & monMaillage)
         //Assemblage du second membre F par la formule de quadrature Gauss Lobatto
 
         //On definit les cinq coordonnees utiles dans la formule
+
         double s_0=1./3;
         double s_1=(6-sqrt(15))/21;
         double s_2=(6+sqrt(15))/21;
@@ -90,18 +86,18 @@ Probleme::Probleme(Maillage & monMaillage)
         double s_4=(9-2*sqrt(15))/21;
 
         //et les trois poids
+
         double eta_0=9./80;
         double eta_1=(155-sqrt(15))/2400;
         double eta_2=(155+sqrt(15))/2400;
 
         //chaque sommet du triangle de la boucle a trois contributions au vecteur felim
-        for(int j=0;j<3;j++)
-        {
+
+        for(int j=0;j<3;j++){
             //la liste des poids et points pour l'interpolation
             double tab[] = {eta_0,s_0,s_0,eta_1,s_1,s_1,eta_1,s_1,s_3,eta_1,s_3,s_1,eta_2,s_2,s_2,eta_2,s_2,s_4,eta_2,s_4,s_2};
             double integ_interpolee=0;
-            for (int i=0;i<7;i++)
-            {
+            for (int i=0;i<7;i++){
                 //l'integrale sur le triangle de la boucle se ramene au triangle de base par chgmt de var.
                 //(s1,s2) est le nouveau point ou l'on calcule f apres changement de var
                 double s1=x12*tab[3*i+1]+x13*tab[3*i+2]+x1;
@@ -114,6 +110,7 @@ Probleme::Probleme(Maillage & monMaillage)
             double addedCoeff = 2*aire_triangle*integ_interpolee;
 
             //l'assemblage a proprement parler
+
             int ind_global=maillage->triangles_sommets[3*ind_triangle+j];
             felim->coeffRef(ind_global-1,0)+=addedCoeff;
         }
@@ -124,22 +121,17 @@ Probleme::Probleme(Maillage & monMaillage)
         double *p_K_elem;
         p_K_elem = new double[9];
 
-        for(int i=0;i<3;i++)
-        {
-            for(int j=0;j<3;j++)
-            {
+        for(int i=0;i<3;i++){
+            for(int j=0;j<3;j++){
                 //remplissage de la matrice elementaire par le calcul de l integrale des fonctions barycentriques
                 p_K_elem[3*i+j]=(1/(4*aire_triangle))*(tab_interm[2*i]*tab_interm[2*j]+tab_interm[2*i+1]*tab_interm[2*j+1]);
             }
         }
-
         //l'assemblage de p_K a proprement parler
-        for(int i=0;i<3;i++)
-        {
+        for(int i=0;i<3;i++){
             int ind_global_1=maillage->triangles_sommets[3*ind_triangle+i];
 
-            for(int j=0;j<3;j++)
-            {
+            for(int j=0;j<3;j++){
                 int ind_global_2=maillage->triangles_sommets[3*ind_triangle+j];
                 //Debug : Affiche les sommets correspondant à la matrice élémentaire en construction
                 //std::cout<<" Sommets : "<<ind_global_1<<" | " <<ind_global_2<< std::endl;
@@ -156,7 +148,6 @@ Probleme::Probleme(Maillage & monMaillage)
             //Résolution séquentielle et assemblage "simple"
             mat_K_elem(p_K_elem,coorneu,tab_local_global,ind_triangle);
             assemblage(*p_K,p_K_elem,tab_local_global,ind_triangle);
-            //Résolution séquentielle :TODO
         }
         else
         {
@@ -169,8 +160,8 @@ Probleme::Probleme(Maillage & monMaillage)
         p_K_elem=0;
     }
 
-    std::cout<<"second membre avant pseudo elimination"<<endl;
-    affichVector(*felim);
+    //std::cout<<"second membre avant pseudo elimination"<<endl;
+    //affichVector(*felim);
 
 
 
@@ -188,7 +179,7 @@ Probleme::Probleme(Maillage & monMaillage)
     {
         if (maillage->nodes_ref[i]==1)
         {
-            std::cout<<"le noeud  "<<i<<"est sur le bord"<<endl;
+            //std::cout<<"le noeud  "<<i<<"est sur le bord"<<endl;
             //seuls les elements du bord sur felim doivent etre changes
             double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
             felim->coeffRef(i,0)=nouvCoeff;
@@ -205,9 +196,9 @@ Probleme::Probleme(Maillage & monMaillage)
         }
     }
 
-    //affich(*p_K);
-    std::cout<<"second membre dans la resolution du systeme lineaire"<<endl;
-    affichVector(*felim);
+    affich(*p_K);
+    //std::cout<<"second membre dans la resolution du systeme lineaire"<<endl;
+    //affichVector(*felim);
 
     Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
     solver.compute(*p_K);
@@ -215,13 +206,13 @@ Probleme::Probleme(Maillage & monMaillage)
     *u=solver.solve(*felim);
     //la solution finale du probleme non homogene
     *u+=*g;
-
+    /*
     std::cout<<"la solution finale"<<endl;
     affichVector(*u);
 
     std::cout<<"l'erreur"<<endl;
     affichVector(*u-*uexa);
-
+    */
     double erreurH1=((*u-*uexa).dot(K_err*((*u-*uexa))));
     cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
     
@@ -292,7 +283,22 @@ double Probleme::calcul_g(double coor_1, double coor_2)
 
 /*void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)
 {
-    //TODO
+    /*Version parallélisée de l'assemblage de la matrice
+
+     * On suppose avoir N+1 coeurs de calculs pour N partitions de tailles N_i noeuds chacunes
+     *(le N-ième coeur correspond au noeuds de l'interface entre partitions)
+
+     * La matrice de rigidité est globalement creuse, pour une partition, on peut définir
+     *une matrice de rigidité locale qui contiendra :
+     *                   -La matrice des noeuds internes à la partition pour les N premieres coeurs de travail
+     * avec size(P_K_loc(i))=N_i*N_i
+     *                   -La matrice des noeuds présents sur l'interface pour le N+1 ème coeur
+     * avec size(P_K_loc(i))=N*N
+     *
+     *A partir d'un objet de la classe maillage créé par la méthode Maillage::Maillage(ifstream& fd)
+     *chaque process va créer sa matrice de rigidité locale.
+
+
 }
 
 
