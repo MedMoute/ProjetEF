@@ -7,6 +7,7 @@ int type2nnodes(int) ;
 
 Maillage::Maillage(ifstream& fd) {
 
+
     // POUR LES FICHIERS VERSION 2.2 SEULEMENT
     string line ;
     // on lit dans le fichier fd
@@ -35,10 +36,6 @@ Maillage::Maillage(ifstream& fd) {
                     nodes_coords = new double[3*n_nodes] ;
                     nodes_ref = new int[n_nodes] ;
 
-                    /*Debug : Affiche les sommets en cours d'extraction
-                    std::cout<<"Extraction des coordonnees des points :"<<std::endl;
-                    std::cout<<"---------------------------------------"<<std::endl;
-                    */
                     // on lit les coords
                     for (int i = 0; i< n_nodes ; i++)
                     {
@@ -46,10 +43,6 @@ Maillage::Maillage(ifstream& fd) {
                         double dummy ;
                         fd >> dummy >> nodes_coords[3*i] >> nodes_coords[3*i+1] >> nodes_coords[3*i+2] ;
                         nodes_ref[i] = 0 ;
-
-                        /* 2eme partie du Debug
-                        std::cout<<"Noeud "<<i<<" : "<< nodes_coords[3*i] <<" | " <<nodes_coords[3*i+1] <<" | " << nodes_coords[3*i+2] <<std::endl;
-                        */
                     }
                     // on passe a la ligne (je ne sais pas pourquoi c'est necessaire
                     getline(fd,line) ;
@@ -75,11 +68,6 @@ Maillage::Maillage(ifstream& fd) {
                     this->n_triangles=0;
                     nb_partitions=0;
 
-                    //Debug : Affiche les sommets correspondant au triangle en cours d'extraction
-                    /*
-                    std::cout<<"Extraction des elements triangulaires :"<<std::endl;
-                    std::cout<<"---------------------------------------"<<std::endl;
-                    */
                     // je considere qu'on n'a que des segments et des triangles et je fais un tableau simple
                     elems_sommets = new int[3*n_elems] ;
 
@@ -113,13 +101,6 @@ Maillage::Maillage(ifstream& fd) {
                         elems_type[2*i+1] = type2nnodes(tmp[1]);  // nb de sommets pour cet element
 
 
-                        /*2eme partie du debug
-                          *if (tmp[1]==2)
-                        {
-                            std::cout<<"Element "<<i<<": ";
-                        }
-                        */
-
                         // GMSH met les elements du bord en 1er
                         // la ref du 1er element correspond donc a la ref du bord
                         int n_tags = tmp[2] ;
@@ -137,25 +118,33 @@ Maillage::Maillage(ifstream& fd) {
                             elems_sommets[3*i+j] = tmp[3+n_tags+j] ;
                             if (tmp[1]==2)
                             {
-                                /* 2eme Partie du débug
-                                std::cout<<tmp[3+n_tags+j]<<" | ";
-                                */
                             }
                             // on remplit nodes_ref : le -1 est la pour recoller a la numerotation 0..n-1
                             if(nodes_ref[ tmp[3+n_tags+j]-1 ] == 0)
                                 nodes_ref[ tmp[3+n_tags+j]-1 ] = elems_ref[i] ;
                         }
 
-                        /*3eme et derniere Partie du debug
-                         *
-                        if (tmp[1]==2)
-                        {
-                            std::cout<<std::endl;
-                        }
-                        */
-
                         if (elems_type[2*i+1]==3){
                             n_triangles++;
+                        }
+
+                        // TODO : Remplir partition_map et partition_map_voisins
+                        /*
+                         *Methode : lors de la lecture des élément par le parser, les tags donnent une partition principale
+                         *dans le cas ou le point d'indice i n'est pas mappé i.e. partition_map[i].empty vrai,on associe les
+                         *autres points de l'élément à la partition principale.
+                         *
+                         *Si il est mappé , on ajoute les points voisins non-encore existants automatiquement.
+                         *Si un point voisin est déja mappé, mais avec une valeur différente, cela veut dire qu'il est sur l'interface
+                         *
+                         *Une fois la boucle effectuée sur tous les points, on peut merger toutes les maps et on obtient une map*<int,int>
+                         *donnant le (indice,partition) global [
+                        */
+
+                        //initialiser partition_map_voisins
+                        for (int j=0;j<n_elems;j++) {
+                            if (partition_map_voisins[tmp[3]]->empty())
+
                         }
 
 
@@ -166,9 +155,6 @@ Maillage::Maillage(ifstream& fd) {
                         cout << "Probleme de lecture du fichier maillage" << endl ;
                         cout << "Mot cle Nodes non suivi de EndNodes" << endl ;
                     }
-                    //std::cout<<std::endl;
-                    //std::cout<<"On reconstruit les triangles avec les sommets correspondants"<<std::endl;
-                    //std::cout<<"------------------------------------------------------------"<<std::endl;
 
                     triangles_sommets = new int[3*n_triangles];
                     for (int k=0;k<n_triangles;k++)
