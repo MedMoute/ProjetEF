@@ -1,3 +1,4 @@
+
 #include "../include/probleme.h"
 #include <stdio.h>
 #include <math.h>
@@ -10,10 +11,62 @@ Probleme::Probleme(Maillage & monMaillage)
     g = new VectorXd;
     u = new VectorXd;
     felim = new VectorXd;
-    
+
     p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
     p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
+    //vecteur qui a en position i la partition a laquelle appartient le noeud i
+    partition_noeud = new int[maillage->n_nodes];
+
+    //vecteur
+
+    for (ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    {
+        int ind_pt1=maillage->triangles_sommets[3*ind_triangle];
+        int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
+        int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2];
+
+        numero_partition_triangle=maillage->partition_ref[ind_triangle];
+
+        if (partition_noeud[ind_pt1]=0)
+        {
+            partition_noeud[ind_pt1]=numero_partition_triangle;
+        }
+        else if(partition_noeud[ind_pt1]=numero_partition_triangle)
+        {
+        }
+        else
+        {
+            partition_noeud[ind_pt1]=3;
+        }
+
+        if (partition_noeud[ind_pt2]=0)
+        {
+            partition_noeud[ind_pt2]=numero_partition_triangle;
+        }
+        else if(partition_noeud[ind_pt2]=numero_partition_triangle)
+        {
+        }
+        else
+        {
+            partition_noeud[ind_pt2]=3;
+        }
+
+        if (partition_noeud[ind_pt3]=0)
+        {
+            partition_noeud[ind_pt3]=numero_partition_triangle;
+        }
+        else if(partition_noeud[ind_pt3]=numero_partition_triangle)
+        {
+        }
+        else
+        {
+            partition_noeud[ind_pt3]=3;
+        }
+
+    }
+
+    voisins_interface = new int[maillage->]
 
     uexa->resize(maillage->n_nodes,1);
 
@@ -209,13 +262,26 @@ Probleme::Probleme(Maillage & monMaillage)
     std::cout<<"second membre dans la resolution du systeme lineaire"<<endl;
     affichVector(*felim);
 
-    Eigen::SimplicialLDLT<Eigen::SparseMatrix<double> > solver;
-    solver.compute(*p_K);
+    /* Schema iteratif en temps */
+    int it = 0;
+    convergence = faux;
 
-    *u=solver.solve(*felim);
-    //la solution finale du probleme non homogene
-    *u+=*g;
+    /*
+    while ( !(convergence) && (it < it_max) ) {
+        it = it+1;
 
+        temp = u; u = u_nouveau; u_nouveau = temp;
+
+        communication( u );
+
+        calcul( u,  u_nouveau);
+
+        diffnorm =  erreur_globale (u, u_nouveau);
+
+        convergence = ( diffnorm < eps );
+
+        if ( (rang == 0) && ( (it % 100) == 0) )
+          printf("Iteration %d erreur_globale = %g\n", it, diffnorm);
     std::cout<<"la solution finale"<<endl;
     affichVector(*u);
 
@@ -224,7 +290,7 @@ Probleme::Probleme(Maillage & monMaillage)
 
     double erreurH1=((*u-*uexa).dot(K_err*((*u-*uexa))));
     cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
-    
+    */
 }
 
 void Probleme::affichVector(VectorXd V)
@@ -247,9 +313,9 @@ void Probleme::affich(Eigen::SparseMatrix<double> _mat)
     if (_mat.size()!=0)
     {
         Eigen::MatrixXd dMat;
-        
+
         dMat=Eigen::MatrixXd(_mat);
-        
+
         for(int i=0;i<dMat.rows();i++)
         {
             for(int j=0;j<dMat.cols();j++)
