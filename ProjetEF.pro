@@ -19,11 +19,16 @@ TEMPLATE = app
 SOURCES += \
     src/maillage.cpp \
     src/probleme.cpp \
-    src/main.cpp
+    src/main.cpp \
+    src/parallel.cpp \
+    src/nonParallel.cpp
 
 HEADERS += \
     include/probleme.h \
-    include/maillage.h
+    include/maillage.h \
+    include/parallel.h \
+    include/nonParallel.h \
+    include/param.h
 
 OTHER_FILES += \
     fichierTest/testpart.msh

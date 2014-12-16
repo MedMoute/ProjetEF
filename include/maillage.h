@@ -1,3 +1,6 @@
+#ifndef MAILLAGE_H
+#define MAILLAGE_H
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -23,15 +26,19 @@ class Maillage {
   int* n_partition; // tmp[5] = 5eme tag de l'element -> nbre de partition de l'élément X
   int* partition_ref; //tmp[6] = 6eme tag de l'element ->partition "principale" de l'élément
 
+  /*
   //TODO
   std::map<int,int>** partition_map_voisins; // Pointeur vers des tableaux de Map (indice du point,partition du point)
                                      // qui à chaque point associe la map des voisins et leur partition associée avec 0 pour
                                      // l'interface
 
+                                     */
   // methodes
  public :
   // constructeur a partir d'un fichier
-  Maillage( ifstream& );
+  Maillage(ifstream&);
 
   ~Maillage() ;
 };
+#endif // MAILLAGE_H
+

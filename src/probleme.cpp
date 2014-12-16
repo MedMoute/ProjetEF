@@ -1,30 +1,100 @@
 
 #include "../include/probleme.h"
+#include "../include/parallel.h"
 #include <stdio.h>
 #include <math.h>
 #define PI 3.14159
+#define PARALLELE true
 
-Probleme::Probleme(Maillage & monMaillage)
+Probleme::Probleme(Maillage & monMaillage, int rang)
 {
     uexa = new VectorXd;
+    uexa->resize(maillage->n_nodes,1);
+
     maillage = &monMaillage;
+
     g = new VectorXd;
+    g->resize(maillage->n_nodes,1);
+
     u = new VectorXd;
+
     felim = new VectorXd;
+    felim->resize(maillage->n_nodes,1);
 
     p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
     p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
-    //vecteur qui a en position i la partition a laquelle appartient le noeud i
     partition_noeud = new int[maillage->n_nodes];
 
-    //vecteur
     vector<vector<int> > voisins_interface;
-    voisins_interface.resize(nb_procs-1);
+    voisins_interface.resize(maillage->nb_partitions-1);
     vector<vector<int> > voisins_partition;
-    voisins_partition.resize(nb_procs-1);
+    voisins_partition.resize(maillage->nb_partitions-1);
 
-    for (ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    calcul_voisins();
+
+    /* Calcul de la solution exacte */
+
+    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
+    {
+        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
+    }
+
+    /* Initialisation des conditions au bord, dans un premier temps a une constante*/
+
+    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
+    {
+        if (maillage->nodes_ref[ind_node]!=0)
+        {
+            double x=maillage->nodes_coords[3*ind_node+0];
+            double y=maillage->nodes_coords[3*ind_node+1];
+            double addedCoeff = calcul_g(x,y);
+            g->coeffRef(ind_node,0)+=addedCoeff;
+        }
+    }
+
+    /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
+
+    assemblage(rang);
+
+    /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
+
+    Eigen::SparseMatrix<double> K_err = *p_K;
+
+    /* Le second membre total, prenant en compte les f et g de la formulation variationnelle
+     * felim a ete obtenu par formules de quadrature. Le second membre en g est obtenu par interpolation
+     */
+
+    *felim=*felim-(*p_K) * (*g);
+
+    /* Mise en oeuvre de la pseudo elimination */
+
+    for(int i=0;i<maillage->n_nodes;i++)
+    {
+        /* seuls les elements du bord sur felim doivent etre changes */
+
+        if (maillage->nodes_ref[i]==1)
+        {
+            double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
+            felim->coeffRef(i,0)=nouvCoeff;
+            for(int j=0;j<maillage->n_nodes;j++)
+            {
+                if (j!=i)
+                {
+                    /* Mise a zero des lignes et colonne (hors diagonale) dont les indices sont sur le bord */
+
+                    p_K->coeffRef(i,j)=0;
+                    p_K->coeffRef(j,i)=0;
+                }
+            }
+        }
+    }
+}
+
+
+void Probleme::calcul_voisins()
+{
+    for (int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
     {
         int ind_pt1=maillage->triangles_sommets[3*ind_triangle];
         int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
@@ -32,54 +102,72 @@ Probleme::Probleme(Maillage & monMaillage)
 
         int numero_partition_triangle=maillage->partition_ref[ind_triangle];
 
-        if (partition_noeud[ind_pt1]=0)
+        /* Un noeud Ã  l'interface est reconnu par son appartenance Ã  deux partitions distinctes. */
+
+        if (partition_noeud[ind_pt1]==0)
         {
             partition_noeud[ind_pt1]=numero_partition_triangle;
         }
-        else if(partition_noeud[ind_pt1]=numero_partition_triangle)
+        else if(partition_noeud[ind_pt1]==numero_partition_triangle)
         {
         }
         else
         {
-            partition_noeud[ind_pt1]=3;
+            partition_noeud[ind_pt1]=0;
         }
 
-        if (partition_noeud[ind_pt2]=0)
+        if (partition_noeud[ind_pt2]==0)
         {
             partition_noeud[ind_pt2]=numero_partition_triangle;
         }
-        else if(partition_noeud[ind_pt2]=numero_partition_triangle)
+        else if(partition_noeud[ind_pt2]==numero_partition_triangle)
         {
         }
         else
         {
-            partition_noeud[ind_pt2]=3;
+            partition_noeud[ind_pt2]=0;
         }
 
-        if (partition_noeud[ind_pt3]=0)
+        if (partition_noeud[ind_pt3]==0)
         {
             partition_noeud[ind_pt3]=numero_partition_triangle;
         }
-        else if(partition_noeud[ind_pt3]=numero_partition_triangle)
+        else if(partition_noeud[ind_pt3]==numero_partition_triangle)
         {
         }
         else
         {
-            partition_noeud[ind_pt3]=3;
+            partition_noeud[ind_pt3]=0;
         }
+    }
 
-        if ((partition_noeud[ind_pt1]==3 || partition_noeud[ind_pt2]==3 || partition_noeud[ind_pt3]==3) &&
-            (!(partition_noeud[ind_pt1]==3 && partition_noeud[ind_pt2]==3 && partition_noeud[ind_pt3]==3)))
+    /* On sait maintenant quel noeud appartient Ã  quel triangle. En parcourant Ã  nouveau les triangles,
+     * en s'arretant sur ceux qui sont au contact de l'interface sans y etre totalement inclus, on peut
+     * donc dÃ©terminer les vecteurs voisins_interface et voisins_partition
+     */
+
+    for (int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    {
+        int ind_pt1=maillage->triangles_sommets[3*ind_triangle];
+        int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
+        int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2];
+
+        int numero_partition_triangle=maillage->partition_ref[ind_triangle];
+
+        if ((partition_noeud[ind_pt1]==0 || partition_noeud[ind_pt2]==0 || partition_noeud[ind_pt3]==0) &&
+                (!(partition_noeud[ind_pt1]==0 && partition_noeud[ind_pt2]==0 && partition_noeud[ind_pt3]==0)))
         {
-            if (partition_noeud[ind_pt2]!=3)
+            if (partition_noeud[ind_pt2]!=0)
             {
+                /* Si le noeud n'est pas sur l'interface, il en est voisin */
                 voisins_interface[partition_noeud[ind_pt2]].push_back(ind_pt2);
             }
             else
             {
+                /* Si le noeud est sur l'interface, il est voisin de la partition du triangle auquel il appartient */
                 voisins_partition[numero_partition_triangle].push_back(ind_pt2);
             }
-            if (partition_noeud[ind_pt3]!=3)
+            if (partition_noeud[ind_pt3]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt3]].push_back(ind_pt3);
             }
@@ -87,7 +175,7 @@ Probleme::Probleme(Maillage & monMaillage)
             {
                 voisins_partition[numero_partition_triangle].push_back(ind_pt3);
             }
-            if (partition_noeud[ind_pt1]!=3)
+            if (partition_noeud[ind_pt1]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt1]].push_back(ind_pt1);
             }
@@ -97,41 +185,50 @@ Probleme::Probleme(Maillage & monMaillage)
             }
         }
      }
-    std::sort (voisins_partition.begin(),voisins_partition.end());
-    for (int i=0;i<nb_procs-1;i++)
+
+    /* On trie chaque liste de noeuds des vecteurs voisins_partition et voisins_interface par ordre
+     * croissant afin de pouvoir les utiliser dans les communications
+     * */
+
+    for (int i=0;i<maillage->nb_partitions-1;i++)
     {
-        td::sort (voisins_interface[i].begin(),voisins_interface[i].end());
+        std::sort (voisins_partition[i].begin(),voisins_partition[i].end());
+        std::sort (voisins_interface[i].begin(),voisins_interface[i].end());
     }
 
-    uexa->resize(maillage->n_nodes,1);
+}
 
-    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++){
-        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
-    }
 
-    g->resize(maillage->n_nodes,1);
 
-    //on initialise les conditions au bord, dans un premier temps a une constante
 
-    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++){
-        if (maillage->nodes_ref[ind_node]!=0){
-            double x=maillage->nodes_coords[3*ind_node+0];
-            double y=maillage->nodes_coords[3*ind_node+1];
-            double addedCoeff = calcul_g(x,y);
-            g->coeffRef(ind_node,0)+=addedCoeff;
-        }
-    }
-    std::cout<<"vecteur conditions aux limites"<<endl;
-    affichVector(*g);
+void Probleme::assemblage(int rang)
+{
+    /* On definit les cinq coordonnees utiles dans la formule */
 
-    felim->resize(maillage->n_nodes,1);
+    double s_0=1./3;
+    double s_1=(6-sqrt(15))/21;
+    double s_2=(6+sqrt(15))/21;
+    double s_3=(9+2*sqrt(15))/21;
+    double s_4=(9-2*sqrt(15))/21;
 
-    for(int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++){
+    /* et les trois poids */
+
+    double eta_0=9./80;
+    double eta_1=(155-sqrt(15))/2400;
+    double eta_2=(155+sqrt(15))/2400;
+
+    /* puis le vecteur pour boucler */
+
+    double tab[] = {eta_0,s_0,s_0,eta_1,s_1,s_1,eta_1,s_1,s_3,eta_1,s_3,s_1,eta_2,s_2,s_2,eta_2,s_2,s_4,eta_2,s_4,s_2};
+
+    for(int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    {
         int ind_pt1=maillage->triangles_sommets[3*ind_triangle];
         int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
         int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2];
 
-        // Les -3 sont dus au fait que les valeurs commencent à l'indice 0 or min(ind_pt)=1
+        /* Les -3 sont dus au fait que les valeurs commencent Ã  l'indice 0 or min(ind_pt)=1 */
+
         double x1=maillage->nodes_coords[0+ind_pt1*3-3];
         double y1=maillage->nodes_coords[1+ind_pt1*3-3];
         double z1=maillage->nodes_coords[2+ind_pt1*3-3];
@@ -142,7 +239,8 @@ Probleme::Probleme(Maillage & monMaillage)
         double y3=maillage->nodes_coords[1+ind_pt3*3-3];
         double z3=maillage->nodes_coords[2+ind_pt3*3-3];
 
-        //calcul des composantes des vecteurs formant les aretes du triangle
+        /* Calcul des composantes des vecteurs formant les aretes du triangle */
+
         double x12 = x2 - x1;
         double y12 = y2 - y1;
         double z12 = z2 - z1;
@@ -153,207 +251,99 @@ Probleme::Probleme(Maillage & monMaillage)
         double y23 = y3 - y2;
         double z23 = z3 - z2;
 
-        //Calcul de l'aire du triangle avec la formule de héron
+        /* Calcul de l'aire du triangle avec la formule de hÃ©ron */
 
         double a=sqrt((x12)*(x12)+(y12)*(y12)+(z12)*(z12));
         double b=sqrt((x13)*(x13)+(y13)*(y13)+(z13)*(z13));
         double c=sqrt((x23)*(x23)+(y23)*(y23)+(z23)*(z23));
 
         double s=(a+b+c)/2;
-
         double aire_triangle = sqrt(s*(s-a)*(s-b)*(s-c));
 
-        //Assemblage du second membre F par la formule de quadrature Gauss Lobatto
+        /* Assemblage de felim */
 
-        //On definit les cinq coordonnees utiles dans la formule
+        assemblage_felim(tab, x12, x13, x1, y12, y13, y1, aire_triangle, ind_triangle, rang);
 
-        double s_0=1./3;
-        double s_1=(6-sqrt(15))/21;
-        double s_2=(6+sqrt(15))/21;
-        double s_3=(9+2*sqrt(15))/21;
-        double s_4=(9-2*sqrt(15))/21;
+        /* Calcul des matrices Ã©lÃ©mentaires */
 
-        //et les trois poids
+        /* Creation de la matrice elementaire pour le triangle de la boucle */
 
-        double eta_0=9./80;
-        double eta_1=(155-sqrt(15))/2400;
-        double eta_2=(155+sqrt(15))/2400;
-
-        //chaque sommet du triangle de la boucle a trois contributions au vecteur felim
-
-        for(int j=0;j<3;j++){
-            //la liste des poids et points pour l'interpolation
-            double tab[] = {eta_0,s_0,s_0,eta_1,s_1,s_1,eta_1,s_1,s_3,eta_1,s_3,s_1,eta_2,s_2,s_2,eta_2,s_2,s_4,eta_2,s_4,s_2};
-            double integ_interpolee=0;
-            for (int i=0;i<7;i++){
-                //l'integrale sur le triangle de la boucle se ramene au triangle de base par chgmt de var.
-                //(s1,s2) est le nouveau point ou l'on calcule f apres changement de var
-                double s1=x12*tab[3*i+1]+x13*tab[3*i+2]+x1;
-                double s2=y12*tab[3*i+1]+y13*tab[3*i+2]+y1;
-                //base_loc(j,x,y) calcule la valeur de la fonction barycentrique lambda_j en (x,y)
-                double term_som=tab[3*i]*base_loc(j,tab[3*i+1],tab[3*i+2])*calcul_f(s1,s2);
-                integ_interpolee+=term_som;
-            }
-
-            double addedCoeff = 2*aire_triangle*integ_interpolee;
-
-            //l'assemblage a proprement parler
-
-            int ind_global=maillage->triangles_sommets[3*ind_triangle+j];
-            felim->coeffRef(ind_global-1,0)+=addedCoeff;
-        }
-
-        double tab_interm[] = {-y23,x23,y13,-x13,-y12,x12};
-
-        //creation de la matrice elementaire pour le triangle de la boucle
         double *p_K_elem;
         p_K_elem = new double[9];
 
-        for(int i=0;i<3;i++){
-            for(int j=0;j<3;j++){
-                //remplissage de la matrice elementaire par le calcul de l integrale des fonctions barycentriques
-                p_K_elem[3*i+j]=(1/(4*aire_triangle))*(tab_interm[2*i]*tab_interm[2*j]+tab_interm[2*i+1]*tab_interm[2*j+1]);
-            }
-        }
-        //l'assemblage de p_K a proprement parler
-        for(int i=0;i<3;i++){
-            int ind_global_1=maillage->triangles_sommets[3*ind_triangle+i];
+        double tab_interm[] = {-y23,x23,y13,-x13,-y12,x12};
+        mat_K_elem(tab_interm, p_K_elem, aire_triangle);
 
-            for(int j=0;j<3;j++){
-                int ind_global_2=maillage->triangles_sommets[3*ind_triangle+j];
-                //Debug : Affiche les sommets correspondant à la matrice élémentaire en construction
-                //std::cout<<" Sommets : "<<ind_global_1<<" | " <<ind_global_2<< std::endl;
-                double AddedCoeff = p_K_elem[3*i+j];
+        /* Assemblage de p_K Ã  partir de chaque matrice Ã©lÃ©mentaire */
+        assemblage_pKelem(ind_triangle, p_K_elem, rang);
 
-                p_K->coeffRef(ind_global_1-1,ind_global_2-1)+=AddedCoeff;
-
-            }
-        }
-
-        //Je mets en commentaire cette partie ou on decide si on fait en sequentiel ou pas
-       /* if (maillage->nb_partitions==2)
-        {
-            //Résolution séquentielle et assemblage "simple"
-            mat_K_elem(p_K_elem,coorneu,tab_local_global,ind_triangle);
-            assemblage(*p_K,p_K_elem,tab_local_global,ind_triangle);
-        }
-        else
-        {
-            mat_K_elem_par(p_K_elem,coorneu,tab_local_global,ind_triangle);
-            assemblage_par(*p_K,p_K_elem,tab_local_global,ind_triangle);
-        }
-        */
+        /* Suppression des matrices Ã©lÃ©mentaires provisoires */
 
         delete p_K_elem;
         p_K_elem=0;
     }
-
-    //std::cout<<"second membre avant pseudo elimination"<<endl;
-    //affichVector(*felim);
-
-
-
-    //affich(*p_K);
-
-    Eigen::SparseMatrix<double> K_err = *p_K;
-
-    //le second membre total, prenant en compte les f et g de la formulation variationnelle
-    //felim a ete obtenu par formules de quadrature, le produit p_K*g montre que le second membre en g est obtenu par interpolation
-    *felim=*felim-(*p_K) * (*g);
-    std::cout<<"second membre dans la reso du systeme avant pseudi elimin"<<endl;
-    affichVector(*felim);
-    //algorithme de pseudo elimination
-    for(int i=0;i<maillage->n_nodes;i++)
-    {
-        if (maillage->nodes_ref[i]==1)
-        {
-            //std::cout<<"le noeud  "<<i<<"est sur le bord"<<endl;
-            //seuls les elements du bord sur felim doivent etre changes
-            double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
-            felim->coeffRef(i,0)=nouvCoeff;
-            for(int j=0;j<maillage->n_nodes;j++)
-            {
-                if (j!=i)
-                {
-                    //on met a zero les lignes et colonne (hors diagonale) dont les indices sont sur le bord
-                    //affichUnElem(*p_K,i,j);
-                    p_K->coeffRef(i,j)=0;
-                    p_K->coeffRef(j,i)=0;
-                }
-            }
-        }
-    }
-
-    affich(*p_K);
-    //std::cout<<"second membre dans la resolution du systeme lineaire"<<endl;
-    //affichVector(*felim);
-
-    /* Schema iteratif en temps */
-    int it = 0;
-    convergence = faux;
-
-    /*
-    while ( !(convergence) && (it < it_max) ) {
-        it = it+1;
-
-        temp = u; u = u_nouveau; u_nouveau = temp;
-
-        communication( u );
-
-        calcul( u,  u_nouveau);
-
-        diffnorm =  erreur_globale (u, u_nouveau);
-
-        convergence = ( diffnorm < eps );
-
-        if ( (rang == 0) && ( (it % 100) == 0) )
-          printf("Iteration %d erreur_globale = %g\n", it, diffnorm);
-
-    std::cout<<"la solution finale"<<endl;
-    affichVector(*u);
-
-    std::cout<<"l'erreur"<<endl;
-    affichVector(*u-*uexa);
-    */
-    double erreurH1=((*u-*uexa).dot(K_err*((*u-*uexa))));
-    cout<<"l'erreur H1 vaut "<<erreurH1<<endl;
-    */
 }
 
-void Probleme::communication(VectorXd u)
+void Probleme::assemblage_felim(double* tab, double x12, double x13, double x1, double y12, double y13, double y1, double
+                                aire_triangle, int ind_triangle, int rang)
 {
-    if (rang=0)
+    double integ_interpolee=0;
+    for(int j=0;j<3;j++)
     {
-        const int etiquette = 100;
-        MPI_Status statut;
-        vector<vector<double> > valeurs_a_envoyer;
-        vector<vector<double> > valeurs_a_recevoir;
-        valeurs_a_envoyer.resize(nb_procs-1);
-        valeurs_a_recevoir.resize(nb_procs-1);
-        for (int i=1;i<nb_procs;i++)
+        int ind_global=maillage->triangles_sommets[3*ind_triangle+j];
+        if (PARALLELE && partition_noeud[ind_global]!=rang)
         {
-            for (int j=0;j<voisins_partition[i].size();j++)
+        }
+        else
+        {
+            for (int i=0;i<7;i++)
             {
-                valeurs_a_envoyer[i].push_back(u->coeffRef(voisins_partition[i][j],0));
-            }
-            MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
-            MPI_Recv(&valeurs_a_recevoir[i],voisins_interface[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD,&statut);
-        }
-    }
-    else
-    {
-        const int etiquette = 200;
-        MPI_Status statut;
-        vector<double> valeurs_a_envoyer;
-        vector<double> valeurs_a_recevoir;
-        for (int i=0;i<voisins_interface[rang].size();i++)
-        {
-            valeurs_a_envoyer.push_back(u->coeffRef(voisins_interface[rang][i],0));
-        }
-        MPI_Send(&valeurs_a_envoyer,valeurs_a_envoyer.size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD);
-        MPI_Recv(&valeurs_a_recevoir,voisins_partition[rang].size(),MPI_DOUBLE,0,MPI_COMM_WORLD,&statut);
-    }
+                /* L'integrale sur le triangle de la boucle se ramene au triangle de base par chgmt de var.
+                 * (s1,s2) est le nouveau point ou l'on calcule f apres changement de var */
 
+                double s1=x12*tab[3*i+1]+x13*tab[3*i+2]+x1;
+                double s2=y12*tab[3*i+1]+y13*tab[3*i+2]+y1;
+                /* base_loc(j,x,y) calcule la valeur de la fonction barycentrique lambda_j en (x,y) */
+                double term_som=tab[3*i]*base_loc(j,tab[3*i+1],tab[3*i+2])*calcul_f(s1,s2);
+                integ_interpolee+=term_som;
+            }
+            double addedCoeff = 2*aire_triangle*integ_interpolee;
+            /* Assemblage de felim */
+            felim->coeffRef(ind_global-1,0)+=addedCoeff;
+        }
+    }
+}
+
+void Probleme::mat_K_elem(double* tab_interm, double* p_K_elem, double aire_triangle)
+{
+    for(int i=0;i<3;i++)
+    {
+        for(int j=0;j<3;j++)
+        {
+            /* Remplissage de la matrice elementaire par le calcul de l integrale des fonctions barycentriques */
+            p_K_elem[3*i+j]=(1/(4*aire_triangle))*(tab_interm[2*i]*tab_interm[2*j]+tab_interm[2*i+1]*tab_interm[2*j+1]);
+        }
+    }
+}
+
+void Probleme::assemblage_pKelem(int ind_triangle, double* p_K_elem, int rang)
+{
+    for(int i=0;i<3;i++)
+    {
+        int ind_global_1=maillage->triangles_sommets[3*ind_triangle+i];
+        for(int j=0;j<3;j++)
+        {
+            int ind_global_2=maillage->triangles_sommets[3*ind_triangle+j];
+            if (PARALLELE && partition_noeud[ind_global_1]!=rang && partition_noeud[ind_global_2]!=rang)
+            {
+            }
+            else
+            {
+                double AddedCoeff = p_K_elem[3*i+j];
+                p_K->coeffRef(ind_global_1-1,ind_global_2-1)+=AddedCoeff;
+            }
+        }
+    }
 }
 
 void Probleme::affichVector(VectorXd V)
@@ -419,32 +409,6 @@ double Probleme::calcul_g(double coor_1, double coor_2)
     return(0*coor_1+0*coor_2);
 }
 
-/*void Probleme::assemblage_par(Eigen::SparseMatrix<double> & mat, double* mat_elem, int* tab,int n)
-{
-    /*Version parallélisée de l'assemblage de la matrice
-
-     * On suppose avoir N+1 coeurs de calculs pour N partitions de tailles N_i noeuds chacunes
-     *(le N-ième coeur correspond au noeuds de l'interface entre partitions)
-
-     * La matrice de rigidité est globalement creuse, pour une partition, on peut définir
-     *une matrice de rigidité locale qui contiendra :
-     *                   -La matrice des noeuds internes à la partition pour les N premieres coeurs de travail
-     * avec size(P_K_loc(i))=N_i*N_i
-     *                   -La matrice des noeuds présents sur l'interface pour le N+1 ème coeur
-     * avec size(P_K_loc(i))=N*N
-     *
-     *A partir d'un objet de la classe maillage créé par la méthode Maillage::Maillage(ifstream& fd)
-     *chaque process va créer sa matrice de rigidité locale.
-
-
-}
-
-
-void Probleme::mat_K_elem_par(double *mat_elem,double *coorneu, int *tab_local_global, int ind_triangle)
-{
-    //TODO Aussi
-}
-*/
 Probleme::~Probleme()
 {
     delete uexa;
@@ -460,3 +424,4 @@ Probleme::~Probleme()
     delete u;
     u=0;
 }
+

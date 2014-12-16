@@ -141,11 +141,11 @@ Maillage::Maillage(ifstream& fd) {
                          *donnant le (indice,partition) global [
                         */
 
-                        //initialiser partition_map_voisins
+                        /*initialiser partition_map_voisins
                         for (int j=0;j<n_elems;j++) {
                             if (partition_map_voisins[tmp[3]]->empty())
 
-                        }
+                        }*/
 
 
                         delete [] tmp ;
