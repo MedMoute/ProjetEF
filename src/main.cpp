@@ -14,6 +14,7 @@ int main(int argc, char *argv[])
     double t1,t2;
     double diffnorm;
     Eigen::SparseMatrix<double> mat_rigidite;
+    Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
 
     /* Initialisation de MPI */
     initialisation_mpi( argc, argv);
@@ -31,12 +32,18 @@ int main(int argc, char *argv[])
     /* Creation des donnees de maillage a partir du fichier lu */
     Maillage mon_maillage=Maillage(FILE);
 
+    cout << "creation du maillage réussie" << endl;
+
     /* Calcul des matrices elements finis et des voisinages pour les communciations */
     Probleme mon_probleme=Probleme(mon_maillage, rang);
+
+    cout << "creation du probleme reussie" << endl;
 
     u = *(mon_probleme.u);
     mat_rigidite = *(mon_probleme.p_Kelim);
     second_membre = *(mon_probleme.felim);
+
+    cout << "Initialisation des variables" << endl;
 
     /* Schema iteratif en temps */
     it = 0;
@@ -52,8 +59,10 @@ int main(int argc, char *argv[])
         /* Echange des points aux interfaces pour u a l'iteration n */
         communication(u, mon_probleme.voisins_partition, mon_probleme.voisins_interface);
 
+        cout << "operation de communication terminee" << endl;
+
         /* Calcul de u a l'iteration n+1 */
-        calcul(u,  u_nouveau, mat_rigidite, second_membre);
+        calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);
 
         /* Calcul de l'erreur globale */
         diffnorm =  erreur_entre_etapes (u, u_nouveau);

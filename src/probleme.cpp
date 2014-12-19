@@ -22,7 +22,9 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
     felim->resize(maillage->n_nodes,1);
 
     p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
-    p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
+    //p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
+
+    diag = new Eigen::DiagonalMatrix<double, Eigen::Dynamic>;
 
     partition_noeud = new int[maillage->n_nodes];
 
@@ -31,7 +33,11 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
     vector<vector<int> > voisins_partition;
     voisins_partition.resize(maillage->nb_partitions-1);
 
+    cout << "Initialisation de tous les parametres de la classe" << endl;
+
     calcul_voisins();
+
+    cout << "remplissage des vecteurs voisins_partition et voisins_interface"<< endl;
 
     /* Calcul de la solution exacte */
 
@@ -39,6 +45,8 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
     {
         uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
     }
+
+    cout << "calcul de la solution exacte"<<endl;
 
     /* Initialisation des conditions au bord, dans un premier temps a une constante*/
 
@@ -53,9 +61,13 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
         }
     }
 
+    cout<<"calcul des conditions au bords"<<endl;
+
     /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
 
     assemblage(rang);
+
+    cout<<"assemblage de la matrice de rigidite reussie"<<endl;
 
     /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
 
@@ -89,6 +101,31 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
             }
         }
     }
+
+    cout << "etape de pseudo elimination terminee"<<endl;
+
+    /* On sotcke la diagonale de la matrice de rigidité pour les itérations */
+
+    (*diag).diagonal() = (*p_K).diagonal();
+
+    /* On retire cette diagonale de la matrice de rigidité car le produit matriciel au cours
+     * des itérations ne les fait pas intervenir ; une boucle pourrait etre évitée en utilisant
+     * les fonctions diagonal de eigen mais la version installee empeche d'ajouter des matrices creuses
+     * et des matrices denses
+     * */
+
+    for (int i=0;i>maillage->n_nodes;i++)
+    {
+        for (int j=0;j<maillage->n_nodes;j++)
+        {
+            if (i==j)
+            {
+                p_K->coeffRef(i,j)=0;
+            }
+        }
+    }
+
+
 }
 
 
@@ -156,32 +193,51 @@ void Probleme::calcul_voisins()
 
         if ((partition_noeud[ind_pt1]==0 || partition_noeud[ind_pt2]==0 || partition_noeud[ind_pt3]==0) &&
                 (!(partition_noeud[ind_pt1]==0 && partition_noeud[ind_pt2]==0 && partition_noeud[ind_pt3]==0)))
+            cout<<"le triangle "<<ind_triangle<<" est au contact de l'interface"<<endl;
         {
             if (partition_noeud[ind_pt2]!=0)
             {
                 /* Si le noeud n'est pas sur l'interface, il en est voisin */
                 voisins_interface[partition_noeud[ind_pt2]].push_back(ind_pt2);
+                cout<<"le noeud "<<ind_pt2<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt2]<<endl;
+                cout<<"vecteur voisins_interface"<<endl;
+                affiche_vector(voisins_interface);
             }
             else
             {
                 /* Si le noeud est sur l'interface, il est voisin de la partition du triangle auquel il appartient */
                 voisins_partition[numero_partition_triangle].push_back(ind_pt2);
+                cout<<"le noeud "<<ind_pt2<<" est sur l'interface et appartient au triangle dont la partition est "<<partition_noeud[ind_pt2]<<endl;
+                cout<<"vecteur voisins_partition"<<endl;
+                affiche_vector(voisins_partition);
             }
             if (partition_noeud[ind_pt3]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt3]].push_back(ind_pt3);
+                cout<<"le noeud "<<ind_pt3<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt3]<<endl;
+                cout<<"vecteur voisins_interface"<<endl;
+                affiche_vector(voisins_interface);
             }
             else
             {
                 voisins_partition[numero_partition_triangle].push_back(ind_pt3);
+                cout<<"le noeud "<<ind_pt3<<" est sur l'interface et appartient au triangle dont la partition est "<<partition_noeud[ind_pt3]<<endl;
+                cout<<"vecteur voisins_partition"<<endl;
+                affiche_vector(voisins_partition);
             }
             if (partition_noeud[ind_pt1]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt1]].push_back(ind_pt1);
+                cout<<"le noeud "<<ind_pt1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt1]<<endl;
+                cout<<"vecteur voisins_interface"<<endl;
+                affiche_vector(voisins_interface);
             }
             else
             {
                 voisins_partition[numero_partition_triangle].push_back(ind_pt1);
+                cout<<"le noeud "<<ind_pt1<<" est sur l'interface et appartient au triangle dont la partition est "<<partition_noeud[ind_pt1]<<endl;
+                cout<<"vecteur voisins_partition"<<endl;
+                affiche_vector(voisins_partition);
             }
         }
      }
@@ -388,6 +444,17 @@ void Probleme::affich(Eigen::SparseMatrix<double> _mat)
     }
 }
 
+void Probleme::affiche_vector(vector<vector<int> > v)
+{
+    for (int int_ligne=0;int_ligne<v.size();int_ligne++)
+    {
+        for (int int_col=0;int_col<v[int_ligne].size();int_col++)
+        {
+            std::cout<<v[int_ligne][int_col]<<" | ";
+        }
+        std::cout<<std::endl;
+    }
+}
 
 double Probleme::base_loc(int j, double coor_1, double coor_2)
 {
@@ -419,8 +486,8 @@ Probleme::~Probleme()
     felim=0;
     delete p_K;
     p_K=0;
-    delete p_Kelim;
-    p_Kelim=0;
+    //delete p_Kelim;
+    //p_Kelim=0;
     delete u;
     u=0;
 }

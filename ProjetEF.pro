@@ -13,6 +13,7 @@ TARGET = ProjetEF
 CONFIG   += console
 CONFIG   += app_bundle
 
+
 TEMPLATE = app
 
 
@@ -35,3 +36,5 @@ OTHER_FILES += \
 
 #Add path to Eigen
 INCLUDEPATH += ./eigen
+INCLUDEPATH += "/Users/pierrefournier/opt/openmpi/include"
+LIBS += "/Users/pierrefournier/opt/openmpi/lib"

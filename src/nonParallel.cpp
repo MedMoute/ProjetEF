@@ -2,12 +2,10 @@
 #include <iostream>
 #include "../include/nonParallel.h"
 
-void calcul(VectorXd u, VectorXd u_nouveau, Eigen::SparseMatrix<double> p_Kelim, VectorXd felim)
+void calcul(VectorXd u, VectorXd u_nouveau, Eigen::SparseMatrix<double> p_Kelim, Eigen::DiagonalMatrix<double, Eigen::Dynamic>
+             diagonale, VectorXd felim)
 {
-    int taille = u.rows();
-    Eigen::DiagonalMatrix<double, taille> diag;
-    diag.diagonal() = (p_Kelim).diagonal();
-    u_nouveau = diag.inverse() * (((p_Kelim)-diag) * u + felim);
+    u_nouveau = diagonale.inverse() * (p_Kelim * u + felim);
 }
 
 

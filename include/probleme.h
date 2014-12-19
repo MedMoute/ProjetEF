@@ -33,6 +33,7 @@ public :
     //int *tab_local_global;
     Eigen::SparseMatrix<double> *p_K ; // matrice K
     Eigen::SparseMatrix<double> *p_Kelim ; // matrice apres pseudo elimination
+    Eigen::DiagonalMatrix<double, Eigen::Dynamic> *diag; // diagonale de la matrice de rigidité
 
     // methodes
 public :
@@ -40,6 +41,7 @@ public :
     Probleme(Maillage & , int);
     void affich(Eigen::SparseMatrix<double>);
     void affichVector(VectorXd);
+    void affiche_vector(vector<vector<int> >);
     void assemblage(int);
     void assemblage_felim(double* , double , double , double , double , double , double , double
                                     , int , int );
