@@ -17,7 +17,7 @@ public :
     VectorXd* u ;
     VectorXd* felim ;
 
-    /*partition_noeud est un vecteur qui a en position i la partition du noeud i, valant 0 si
+    /*partition_noeud est un vecteur qui a en position i la partition du noeud i+1, valant 0 si
    * le noeud est sur l'interface */
     int* partition_noeud;
 
