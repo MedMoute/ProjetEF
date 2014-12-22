@@ -53,7 +53,7 @@ public :
     void calcul_voisins(vector<vector<int> >, vector<vector<int> >);
 
     //Méthodes de Set pour l'encapsulation
-    void Set_maillage (Maillage _maillage);
+    void Set_maillage (Maillage* _maillage);
     void Set_uexa (VectorXd* _uexa);
     void Set_g (VectorXd* _g);
     void Set_u (VectorXd* _u);
