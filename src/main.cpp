@@ -51,10 +51,12 @@ int main(int argc, char *argv[])
 
     /* Mesure du temps en seconde dans la boucle en temps */
     t1 = MPI_Wtime();
-
+    cout<<"temps horloge avant le calcul mémorisé"<<endl;
 
     while ( !(convergence) && (it < it_max) )
-    {
+    {   
+        cout<<"_________"<<endl;
+        cout<<"Iteration "<<it<<endl;
         it = it+1;
 
         cout<<"echange des valeurs entre interface et partitions"<<endl;
