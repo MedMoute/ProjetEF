@@ -177,7 +177,6 @@ Maillage::Maillage(ifstream& fd) {
             }
         }
     }
-
 }
 
 Maillage::~Maillage()

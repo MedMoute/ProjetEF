@@ -39,9 +39,9 @@ int main(int argc, char *argv[])
 
     cout << "creation du probleme reussie" << endl;
 
-    u = *(mon_probleme.u);
-    mat_rigidite = *(mon_probleme.p_Kelim);
-    second_membre = *(mon_probleme.felim);
+    u = *(mon_probleme.Get_u());
+    mat_rigidite = *(mon_probleme.Get_p_Kelim());
+    second_membre = *(mon_probleme.Get_felim());
 
     cout << "Initialisation des variables" << endl;
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         it = it+1;
 
         /* Echange des points aux interfaces pour u a l'iteration n */
-        communication(u, mon_probleme.voisins_partition, mon_probleme.voisins_interface);
+        communication(u, mon_probleme.Get_voisins_partition(), mon_probleme.Get_voisins_interface());
 
         cout << "operation de communication terminee" << endl;
 
