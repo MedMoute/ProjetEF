@@ -6,10 +6,11 @@
 #define PI 3.14159
 #define PARALLELE true
 
-Probleme::Probleme(Maillage & monMaillage, int rang)
+Probleme::Probleme(Maillage monMaillage, int rang)
 {
-    maillage = &monMaillage;
+    Set_maillage(monMaillage);
 
+    cout<<"Nodes lus par rang "<<rang<<": "<<maillage->Get_n_nodes()<<endl;
     uexa = new VectorXd;
     uexa->resize(maillage->Get_n_nodes(),1);
 
@@ -131,7 +132,6 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
 
     //cout<<"voici la matrice de rigidite sans diagonale, telle qu'elle intervient dans les calculs"<<endl;
     //affich(*p_K);
-
 
 }
 
@@ -564,8 +564,8 @@ Probleme::~Probleme()
 ////// Méthdoes GET et SET pour l'encapsulation
     //** Méthodes SET
 
-    void Probleme::Set_maillage (Maillage* _maillage) {
-        maillage=_maillage;
+    void Probleme::Set_maillage (Maillage _maillage) {
+        maillage=&_maillage;
     }
 
     void Probleme::Set_uexa (VectorXd* _uexa) {

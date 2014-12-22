@@ -39,7 +39,7 @@ private :
     // methodes
 public :
     // constructeur a partir d'un maillage
-    Probleme(Maillage & , int);
+    Probleme(Maillage , int);
     void affich(Eigen::SparseMatrix<double>);
     void affichVector(VectorXd);
     void affiche_vector(vector<vector<int> >);
@@ -53,7 +53,7 @@ public :
     void calcul_voisins(vector<vector<int> >, vector<vector<int> >);
 
     //Méthodes de Set pour l'encapsulation
-    void Set_maillage (Maillage* _maillage);
+    void Set_maillage (Maillage _maillage);
     void Set_uexa (VectorXd* _uexa);
     void Set_g (VectorXd* _g);
     void Set_u (VectorXd* _u);
