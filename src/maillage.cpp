@@ -200,3 +200,112 @@ int type2nnodes(int type) {
 
 }
 
+//// Méthdes SET et GET pour l'encapsulation
+  //** Méthodes SET 
+  
+  void Maillage::Set_n_nodes (int _n_nodes) {
+    n_nodes=_n_nodes;
+  }
+
+  void Maillage::Set_n_elems (int _n_elems) {
+    n_elems=_n_elems;
+  }
+
+  void Maillage::Set_n_triangles (int _n_triangles) {
+    n_triangles=_n_triangles;
+  }
+
+  void Maillage::Set_nb_partitions (int _nb_partitions) {
+    nb_partitions=_nb_partitions;
+  }
+
+  void Maillage::Set_nodes_coords (double* _nodes_coords) {
+    nodes_coords=_nodes_coords;
+  }
+
+  void Maillage::Set_nodes_ref (int* _nodes_ref) {
+    nodes_ref=_nodes_ref;
+  }
+
+  void Maillage::Set_elems_type (int* _elems_type) {
+    elems_type=_elems_type;
+  }
+
+  void Maillage::Set_elems_ref (int* _elems_ref) {
+    elems_ref=_elems_ref;
+  }
+
+  void Maillage::Set_elems_sommets (int* _elems_sommets) {
+    elems_sommets=_elems_sommets;
+  }
+
+  void Maillage::Set_triangles_ref (int* _triangles_ref) {
+    triangles_ref=_triangles_ref;
+  }
+
+  void Maillage::Set_triangles_sommets (int* _triangles_sommets) {
+    triangles_sommets=_triangles_sommets;
+  }
+
+  void Maillage::Set_n_partition (int* _n_partition) {
+    n_partition=_n_partition;
+  }
+
+  void Maillage::Set_partition_ref (int* _partition_ref) {
+    partition_ref=_partition_ref;
+  }
+
+
+  //** Méthodes GET
+  int Maillage::Get_n_nodes () {
+    return n_nodes;
+  }
+
+  int Maillage::Get_n_elems () {
+    return n_elems;
+  }
+
+  int Maillage::Get_n_triangles() {
+    return n_triangles;
+  }
+
+  int Maillage::Get_nb_partitions() {
+    return nb_partitions;
+  }
+
+  double* Maillage::Get_nodes_coords() {
+    return nodes_coords;
+  }
+
+  int* Maillage::Get_nodes_ref() {
+    return nodes_ref;
+  }
+
+  int* Maillage::Get_elems_type() {
+    return elems_type;
+  }
+
+  int* Maillage::Get_elems_ref() {
+    return elems_ref;
+  }
+
+  int* Maillage::Get_elems_sommets() {
+    return elems_sommets;
+  }
+
+  int* Maillage::Get_triangles_ref() {
+    return triangles_ref;
+  }
+
+  int* Maillage::Get_triangles_sommets() {
+    return triangles_sommets;
+  }
+
+  int* Maillage::Get_n_partition() {
+    return n_partition;
+  }
+
+  int* Maillage::Get_partition_ref() {
+    return partition_ref;
+  }
+

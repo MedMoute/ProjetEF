@@ -9,33 +9,33 @@
 Probleme::Probleme(Maillage & monMaillage, int rang)
 {
     uexa = new VectorXd;
-    uexa->resize(maillage->n_nodes,1);
+    uexa->resize(maillage->Get_n_nodes(),1);
 
     maillage = &monMaillage;
 
     g = new VectorXd;
-    g->resize(maillage->n_nodes,1);
+    g->resize(maillage->Get_n_nodes(),1);
 
     u = new VectorXd;
 
     felim = new VectorXd;
-    felim->resize(maillage->n_nodes,1);
+    felim->resize(maillage->Get_n_nodes(),1);
 
-    p_K = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
+    p_K = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
     //p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
     diag = new Eigen::DiagonalMatrix<double, Eigen::Dynamic>;
 
-    partition_noeud = new int[maillage->n_nodes];
-    for (int i=0;i<maillage->n_nodes;i++)
+    partition_noeud = new int[maillage->Get_n_nodes()];
+    for (int i=0;i<maillage->Get_n_nodes();i++)
     {
         partition_noeud[i]=-1;
     }
 
     vector<vector<int> > voisins_interface;
-    voisins_interface.resize(maillage->nb_partitions);
+    voisins_interface.resize(maillage->Get_nb_partitions());
     vector<vector<int> > voisins_partition;
-    voisins_partition.resize(maillage->nb_partitions);
+    voisins_partition.resize(maillage->Get_nb_partitions());
 
     //cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
 
@@ -48,21 +48,21 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
 
     /* Calcul de la solution exacte */
 
-    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
+    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
     {
-        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->nodes_coords[3*ind_node],maillage->nodes_coords[3*ind_node+1]);
+        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
     }
 
     cout << "calcul de la solution exacte"<<endl;
 
     /* Initialisation des conditions au bord, dans un premier temps a une constante*/
 
-    for(int ind_node=0;ind_node<maillage->n_nodes;ind_node++)
+    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
     {
-        if (maillage->nodes_ref[ind_node]!=0)
+        if (maillage->Get_nodes_ref()[ind_node]!=0)
         {
-            double x=maillage->nodes_coords[3*ind_node+0];
-            double y=maillage->nodes_coords[3*ind_node+1];
+            double x=maillage->Get_nodes_coords()[3*ind_node+0];
+            double y=maillage->Get_nodes_coords()[3*ind_node+1];
             double addedCoeff = calcul_g(x,y);
             g->coeffRef(ind_node,0)+=addedCoeff;
         }
@@ -90,15 +90,15 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
 
     /* Mise en oeuvre de la pseudo elimination */
 
-    for(int i=0;i<maillage->n_nodes;i++)
+    for(int i=0;i<maillage->Get_n_nodes();i++)
     {
         /* seuls les elements du bord sur felim doivent etre changes */
 
-        if (maillage->nodes_ref[i]==1)
+        if (maillage->Get_nodes_ref()[i]==1)
         {
             double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
             felim->coeffRef(i,0)=nouvCoeff;
-            for(int j=0;j<maillage->n_nodes;j++)
+            for(int j=0;j<maillage->Get_n_nodes();j++)
             {
                 if (j!=i)
                 {
@@ -124,8 +124,7 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
      * et des matrices denses
      * */
 
-
-    for (int i=0;i<maillage->n_nodes;i++)
+    for (int i=0;i<maillage->Get_n_nodes();i++)
     {
         p_K->coeffRef(i,i)=0;
     }
@@ -139,13 +138,13 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
 
 void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vector<int> > voisins_partition)
 {
-    for (int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
-        int ind_pt1=maillage->triangles_sommets[3*ind_triangle]-1;
-        int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1]-1;
-        int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2]-1;
+        int ind_pt1=maillage->Get_triangles_sommets()[3*ind_triangle]-1;
+        int ind_pt2=maillage->Get_triangles_sommets()[3*ind_triangle+1]-1;
+        int ind_pt3=maillage->Get_triangles_sommets()[3*ind_triangle+2]-1;
 
-        int numero_partition_triangle=maillage->partition_ref[maillage->n_elems-maillage->n_triangles+ind_triangle];
+        int numero_partition_triangle=maillage->Get_partition_ref()[maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle];
 
         //cout<<"________________________________"<<endl;
         //cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
@@ -218,22 +217,23 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
     //cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
 
 
-    for (int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
-        int ind_pt1=maillage->triangles_sommets[3*ind_triangle]-1; 
-        int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1]-1;
-        int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2]-1;
+        int ind_pt1=maillage->Get_triangles_sommets()[3*ind_triangle]-1; 
+        int ind_pt2=maillage->Get_triangles_sommets()[3*ind_triangle+1]-1;
+        int ind_pt3=maillage->Get_triangles_sommets()[3*ind_triangle+2]-1;
 
         //cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
-        //cout<<"c'est l element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<endl;;
+        //cout<<"c'est l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<endl;;
 
-        int numero_partition_triangle=maillage->partition_ref[maillage->n_elems-maillage->n_triangles+ind_triangle];
+        int numero_partition_triangle=maillage->Get_partition_ref()[maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle];
         //cout<<"il est sur la partition "<<numero_partition_triangle<<endl;
 
         if ((partition_noeud[ind_pt1]==0 || partition_noeud[ind_pt2]==0 || partition_noeud[ind_pt3]==0) &&
                 (!(partition_noeud[ind_pt1]==0 && partition_noeud[ind_pt2]==0 && partition_noeud[ind_pt3]==0)))
         {
-            //cout<<"l'element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<" est au contact de l'interface"<<endl;
+
+            //cout<<"l'element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<" est au contact de l'interface"<<endl;
 
             if (partition_noeud[ind_pt2]!=0)
             {
@@ -346,23 +346,23 @@ void Probleme::assemblage(int rang)
 
     double tab[] = {eta_0,s_0,s_0,eta_1,s_1,s_1,eta_1,s_1,s_3,eta_1,s_3,s_1,eta_2,s_2,s_2,eta_2,s_2,s_4,eta_2,s_4,s_2};
 
-    for(int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
+    for(int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
-        int ind_pt1=maillage->triangles_sommets[3*ind_triangle];
-        int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1];
-        int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2];
+        int ind_pt1=maillage->Get_triangles_sommets()[3*ind_triangle];
+        int ind_pt2=maillage->Get_triangles_sommets()[3*ind_triangle+1];
+        int ind_pt3=maillage->Get_triangles_sommets()[3*ind_triangle+2];
 
         /* Les -3 sont dus au fait que les valeurs commencent Ã  l'indice 0 or min(ind_pt)=1 */
 
-        double x1=maillage->nodes_coords[0+ind_pt1*3-3];
-        double y1=maillage->nodes_coords[1+ind_pt1*3-3];
-        double z1=maillage->nodes_coords[2+ind_pt1*3-3];
-        double x2=maillage->nodes_coords[0+ind_pt2*3-3];
-        double y2=maillage->nodes_coords[1+ind_pt2*3-3];
-        double z2=maillage->nodes_coords[2+ind_pt2*3-3];
-        double x3=maillage->nodes_coords[0+ind_pt3*3-3];
-        double y3=maillage->nodes_coords[1+ind_pt3*3-3];
-        double z3=maillage->nodes_coords[2+ind_pt3*3-3];
+        double x1=maillage->Get_nodes_coords()[0+ind_pt1*3-3];
+        double y1=maillage->Get_nodes_coords()[1+ind_pt1*3-3];
+        double z1=maillage->Get_nodes_coords()[2+ind_pt1*3-3];
+        double x2=maillage->Get_nodes_coords()[0+ind_pt2*3-3];
+        double y2=maillage->Get_nodes_coords()[1+ind_pt2*3-3];
+        double z2=maillage->Get_nodes_coords()[2+ind_pt2*3-3];
+        double x3=maillage->Get_nodes_coords()[0+ind_pt3*3-3];
+        double y3=maillage->Get_nodes_coords()[1+ind_pt3*3-3];
+        double z3=maillage->Get_nodes_coords()[2+ind_pt3*3-3];
 
         /* Calcul des composantes des vecteurs formant les aretes du triangle */
 
@@ -415,7 +415,7 @@ void Probleme::assemblage_felim(double* tab, double x12, double x13, double x1, 
     double integ_interpolee=0;
     for(int j=0;j<3;j++)
     {
-        int ind_global=maillage->triangles_sommets[3*ind_triangle+j];
+        int ind_global=maillage->Get_triangles_sommets()[3*ind_triangle+j];
         if (PARALLELE && partition_noeud[ind_global]!=rang)
         {
         }
@@ -455,10 +455,10 @@ void Probleme::assemblage_pKelem(int ind_triangle, double* p_K_elem, int rang)
 {
     for(int i=0;i<3;i++)
     {
-        int ind_global_1=maillage->triangles_sommets[3*ind_triangle+i];
+        int ind_global_1=maillage->Get_triangles_sommets()[3*ind_triangle+i];
         for(int j=0;j<3;j++)
         {
-            int ind_global_2=maillage->triangles_sommets[3*ind_triangle+j];
+            int ind_global_2=maillage->Get_triangles_sommets()[3*ind_triangle+j];
             if (PARALLELE && partition_noeud[ind_global_1]!=rang && partition_noeud[ind_global_2]!=rang)
             {
             }
@@ -561,3 +561,96 @@ Probleme::~Probleme()
     u=0;
 }
 
+
+////// Méthdoes GET et SET pour l'encapsulation
+    //** Méthodes SET
+
+    void Probleme::Set_maillage (Maillage* _maillage) {
+        maillage=_maillage;
+    }
+
+    void Probleme::Set_uexa (VectorXd* _uexa) {
+        uexa=_uexa;
+    }
+
+    void Probleme::Set_g (VectorXd* _g) {
+        g=_g;
+    }
+
+    void Probleme::Set_u (VectorXd* _u) {
+        u=_u;
+    }
+
+    void Probleme::Set_felim (VectorXd* _felim) {
+        felim=_felim;
+    }
+
+    void Probleme::Set_partition_noeud (int* _partition_noeud) {
+        partition_noeud = _partition_noeud;
+    }
+
+    void Probleme::Set_voisins_interface (vector<vector<int> > _voisins_interface)  {
+        voisins_interface=_voisins_interface;
+    }
+
+    void Probleme::Set_voisins_partition (vector<vector<int> > _voisins_partition) {
+        voisins_partition=_voisins_partition;
+    }
+
+    void Probleme::Set_p_K (Eigen::SparseMatrix<double>* _p_K) {
+        p_K=_p_K;
+    }
+
+    void Probleme::Set_p_Kelim (Eigen::SparseMatrix<double>* _p_Kelim) {
+        p_Kelim=_p_Kelim;
+    }
+
+    void Probleme::Set_diag (Eigen::DiagonalMatrix<double,Eigen::Dynamic>* _diag) {
+        diag=_diag;
+    }
+
+    //** Méthodes GET
+    
+    Maillage* Probleme::Get_maillage (){
+        return maillage;
+    }
+
+    VectorXd* Probleme::Get_uexa (){
+        return uexa;
+    }
+
+    VectorXd* Probleme::Get_g (){
+        return g;
+    }
+
+    VectorXd* Probleme::Get_u (){
+        return u;
+    }
+
+    VectorXd* Probleme::Get_felim () {
+        return felim;
+    }
+
+    int* Probleme::Get_partition_noeud (){
+        return partition_noeud;
+    }
+
+    vector<vector<int> > Probleme::Get_voisins_partition (){
+        return voisins_partition;
+    }
+
+    vector<vector<int> > Probleme::Get_voisins_interface (){
+        return voisins_interface;
+    }
+
+    Eigen::SparseMatrix<double>* Probleme::Get_p_K (){
+        return p_K;
+    }
+
+    Eigen::SparseMatrix<double>* Probleme::Get_p_Kelim () {
+        return p_Kelim;
+    }
+
+    Eigen::DiagonalMatrix<double,Eigen::Dynamic>* Probleme::Get_diag () {
+        return diag;
+    }
