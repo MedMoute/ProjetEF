@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <math.h>
 #define PI 3.14159
-#define PARALLELE false
+#define PARALLELE true
 
 Probleme::Probleme(Maillage & monMaillage, int rang)
 {
+    maillage = &monMaillage;
+
     uexa = new VectorXd;
     uexa->resize(maillage->Get_n_nodes(),1);
-
-    maillage = &monMaillage;
 
     g = new VectorXd;
     g->resize(maillage->Get_n_nodes(),1);
@@ -234,7 +234,6 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
         {
 
             //cout<<"l'element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<" est au contact de l'interface"<<endl;
-
             if (partition_noeud[ind_pt2]!=0)
             {
                 /* Si le noeud n'est pas sur l'interface, il en est voisin */

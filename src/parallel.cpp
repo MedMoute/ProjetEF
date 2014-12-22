@@ -8,12 +8,7 @@ static int nb_procs;
  * Initialisation pour chaque processus de son rang et du
  * nombre total de processus nb_procs
  */
-void initialisation_mpi( int argc, char * argv[] )
-{
-  MPI_Init( &argc, &argv);
-  MPI_Comm_rank( MPI_COMM_WORLD, &rang);
-  MPI_Comm_size( MPI_COMM_WORLD, &nb_procs);
-}
+
 
 void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<vector<int> > voisins_interface)
 {
