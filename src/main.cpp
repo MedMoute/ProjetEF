@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 
     /*lecture du fichier .msh*/
     ifstream FILE;
-    FILE.open("./fichierTest/testPart.msh", ios::in);
+    FILE.open("./fichierTest/testpart.msh", ios::in);
 
     if (FILE.fail())
     {
@@ -52,10 +52,12 @@ int main(int argc, char *argv[])
     /* Mesure du temps en seconde dans la boucle en temps */
     t1 = MPI_Wtime();
 
+
     while ( !(convergence) && (it < it_max) )
     {
         it = it+1;
 
+        cout<<"echange des valeurs entre interface et partitions"<<endl;
         /* Echange des points aux interfaces pour u a l'iteration n */
         communication(u, mon_probleme.voisins_partition, mon_probleme.voisins_interface);
 

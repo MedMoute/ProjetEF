@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 #define PI 3.14159
-#define PARALLELE true
+#define PARALLELE false
 
 Probleme::Probleme(Maillage & monMaillage, int rang)
 {
@@ -74,7 +74,9 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
 
     assemblage(rang);
 
-    cout<<"assemblage de la matrice de rigidite reussie"<<endl;
+    cout<<"assemblage de la matrice de rigidite reussie. Voici p_K"<<endl;
+
+    affich(*p_K);
 
     /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
 
@@ -109,7 +111,8 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
         }
     }
 
-    cout << "etape de pseudo elimination terminee"<<endl;
+    cout << "etape de pseudo elimination terminee. Voici p_K"<<endl;
+    affich(*p_K);
 
     /* On sotcke la diagonale de la matrice de rigidité pour les itérations */
 
@@ -121,16 +124,14 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
      * et des matrices denses
      * */
 
-    for (int i=0;i>maillage->n_nodes;i++)
+
+    for (int i=0;i<maillage->n_nodes;i++)
     {
-        for (int j=0;j<maillage->n_nodes;j++)
-        {
-            if (i==j)
-            {
-                p_K->coeffRef(i,j)=0;
-            }
-        }
+        p_K->coeffRef(i,i)=0;
     }
+
+    cout<<"voici la matrice de rigidite sans diagonale, telle qu'elle intervient dans les calculs"<<endl;
+    affich(*p_K);
 
 
 }
