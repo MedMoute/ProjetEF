@@ -4,6 +4,8 @@
 #include "maillage.h"
 #include <Eigen/Sparse>
 #include <Eigen/SparseCholesky>
+#include <vector>
+#include <algorithm>
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd ;
 
@@ -49,7 +51,7 @@ public :
     void assemblage_pKelem(int , double* , int );
 
     /*Calcule, par parcours des noeuds de l'interface, voisins_interface et voisins_partitions */
-    void calcul_voisins();
+    void calcul_voisins(vector<vector<int> >, vector<vector<int> >);
 
     ~Probleme();
 
