@@ -37,7 +37,7 @@ Probleme::Probleme(Maillage & monMaillage, int rang)
     vector<vector<int> > voisins_partition;
     voisins_partition.resize(maillage->nb_partitions);
 
-    cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
+    //cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
 
     cout << "Initialisation de tous les parametres de la classe" << endl;
     cout << "remplissage des vecteurs voisins_partition et voisins_interface"<< endl;
@@ -212,9 +212,9 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
      * donc dÃ©terminer les vecteurs voisins_interface et voisins_partition
      */
 
-    cout<<"________________________________"<<endl;
-    cout<<"PASSAGE AU REMPLISSAGE DES VOISINS"<<endl;
-    cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
+    //cout<<"________________________________"<<endl;
+    //cout<<"PASSAGE AU REMPLISSAGE DES VOISINS"<<endl;
+    //cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
 
 
     for (int ind_triangle=0;ind_triangle<maillage->n_triangles;ind_triangle++)
@@ -223,65 +223,65 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
         int ind_pt2=maillage->triangles_sommets[3*ind_triangle+1]-1;
         int ind_pt3=maillage->triangles_sommets[3*ind_triangle+2]-1;
 
-        cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
-        cout<<"c'est l element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<endl;;
+        //cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
+        //cout<<"c'est l element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<endl;;
 
         int numero_partition_triangle=maillage->partition_ref[maillage->n_elems-maillage->n_triangles+ind_triangle];
-        cout<<"il est sur la partition "<<numero_partition_triangle<<endl;
+        //cout<<"il est sur la partition "<<numero_partition_triangle<<endl;
 
         if ((partition_noeud[ind_pt1]==0 || partition_noeud[ind_pt2]==0 || partition_noeud[ind_pt3]==0) &&
                 (!(partition_noeud[ind_pt1]==0 && partition_noeud[ind_pt2]==0 && partition_noeud[ind_pt3]==0)))
         {
-            cout<<"l'element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<" est au contact de l'interface"<<endl;
+            //cout<<"l'element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<" est au contact de l'interface"<<endl;
 
             if (partition_noeud[ind_pt2]!=0)
             {
                 /* Si le noeud n'est pas sur l'interface, il en est voisin */
                 voisins_interface[partition_noeud[ind_pt2]-1].push_back(ind_pt2+1);
-                cout<<"le noeud "<<ind_pt2+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt2]<<endl;
-                cout<<"vecteur voisins_interface"<<endl;
-                affiche_vector(voisins_interface);
+                //cout<<"le noeud "<<ind_pt2+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt2]<<endl;
+                //cout<<"vecteur voisins_interface"<<endl;
+                //affiche_vector(voisins_interface);
             }
             else
             {
                 /* Si le noeud est sur l'interface, il est voisin de la partition du triangle auquel il appartient */
                 voisins_partition[numero_partition_triangle-1].push_back(ind_pt2+1);
-                cout<<"le noeud "<<ind_pt2+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
-                cout<<"vecteur voisins_partition"<<endl;
-                affiche_vector(voisins_partition);
+                //cout<<"le noeud "<<ind_pt2+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
+                //cout<<"vecteur voisins_partition"<<endl;
+                //affiche_vector(voisins_partition);
             }
             if (partition_noeud[ind_pt3]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt3]-1].push_back(ind_pt3+1);
-                cout<<"le noeud "<<ind_pt3+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt3]<<endl;
-                cout<<"vecteur voisins_interface"<<endl;
-                affiche_vector(voisins_interface);
+                //cout<<"le noeud "<<ind_pt3+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt3]<<endl;
+                //cout<<"vecteur voisins_interface"<<endl;
+                //affiche_vector(voisins_interface);
             }
             else
             {
                 voisins_partition[numero_partition_triangle-1].push_back(ind_pt3+1);
-                cout<<"le noeud "<<ind_pt3+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
-                cout<<"vecteur voisins_partition"<<endl;
-                affiche_vector(voisins_partition);
+                //cout<<"le noeud "<<ind_pt3+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
+                //cout<<"vecteur voisins_partition"<<endl;
+                //affiche_vector(voisins_partition);
             }
             if (partition_noeud[ind_pt1]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt1]-1].push_back(ind_pt1+1);
-                cout<<"le noeud "<<ind_pt1+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt1]<<endl;
-                cout<<"vecteur voisins_interface"<<endl;
-                affiche_vector(voisins_interface);
+                //cout<<"le noeud "<<ind_pt1+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt1]<<endl;
+                //cout<<"vecteur voisins_interface"<<endl;
+                //affiche_vector(voisins_interface);
             }
             else
             {
                 voisins_partition[numero_partition_triangle-1].push_back(ind_pt1+1);
-                cout<<"le noeud "<<ind_pt1+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
-                cout<<"vecteur voisins_partition"<<endl;
-                affiche_vector(voisins_partition);
+                //cout<<"le noeud "<<ind_pt1+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
+                //cout<<"vecteur voisins_partition"<<endl;
+                //affiche_vector(voisins_partition);
             }
         }
         else
         {
-            cout<<"Il n'est pas au contact de l'interface"<<endl;
+            //cout<<"Il n'est pas au contact de l'interface"<<endl;
         }
      }
 
@@ -312,7 +312,12 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
         (*vect_it).resize(std::distance((*vect_it).begin(),it));
     }
 
+    cout<<"voici le vecteur voisins_interface, contenant sur la i-eme ligne la liste ordonnée des noeuds de la partition i voisins de l'interface"<<endl;
+
     affiche_vector(voisins_interface);
+
+    cout<<"voici le vecteur voisins_partition, contenant sur la i-eme ligne la liste ordonnée des noeuds de l'interface voisins de la partition i"<<endl;
+
     affiche_vector(voisins_partition);
 
 }
