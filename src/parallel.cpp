@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include "../include/parallel.h"
+#include "../include/nonParallel.h"
 int rang;
 int nb_procs;
 
@@ -20,18 +21,21 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
         vector<vector<double> > valeurs_a_envoyer;
         vector<vector<double> > valeurs_a_recevoir;
 
+            //affiche_vector(voisins_partition);
+            cout<<u.coeffRef(voisins_partition[1][1])<<endl;
+
         //valeurs_a_envoyer.resize(nb_procs-1);
         //valeurs_a_recevoir.resize(nb_procs-1);
         cout<<"Task : "<<rang<< " sur "<<nb_procs<<endl;
         for (int i=1;i<nb_procs;i++)
         {
-            cout<<"on regarde ce qu'on va envoyer au proc "<<i<<" a savoir les "<<voisins_partition[i].size();
+            cout<<"Task : "<<rang<< " On regarde ce qu'on va envoyer au proc "<<i<<" a savoir les "<<voisins_partition[i].size();
             cout<<" valeurs de l'interface qui sont voisines de la partition "<<i<<endl;
             for (unsigned int j=0;j<voisins_partition[i].size();j++)
             {
-
-                cout<<u.coeffRef(voisins_partition[i][j],0)<<" |";
+                cout<<"Test1"<<endl;
                 valeurs_a_envoyer[i].push_back(u.coeffRef(voisins_partition[i][j],0));
+                cout<<"Test3"<<endl;
             }
             cout<<endl;
             MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
@@ -41,12 +45,12 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
     else
     {
     cout << "Task : "<<rang<< " Est entrée dans la fonction de communication de la non-interface" << endl;
-
+    affiche_vector(voisins_interface);
         const int etiquette = 200;
         MPI_Status statut;
         vector<double> valeurs_a_envoyer;
         vector<double> valeurs_a_recevoir;
-        cout<<"Task : "<<rang<< " yo"<<endl;
+        cout<<"Task : "<<rang<< " sur "<<nb_procs<<endl;
         for (unsigned int i=0;i<voisins_interface[rang].size();i++)
         {
             valeurs_a_envoyer.push_back(u.coeffRef(voisins_interface[rang][i],0));

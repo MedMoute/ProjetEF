@@ -64,10 +64,10 @@ int main(int argc, char *argv[])
     vector<vector<int> > voisins_partition = mon_probleme.Get_voisins_partition();
     vector<vector<int> > voisins_interface = mon_probleme.Get_voisins_interface();
 
-    cout<<"affichage de voisins_partition :"<<endl;
-    affiche_vector(voisins_partition);
-    cout<<"affichage de voisins_interface :"<<endl;
-    affiche_vector(voisins_interface);
+    //cout<<"affichage de voisins_partition :"<<endl;
+    //affiche_vector(voisins_partition);
+    //cout<<"affichage de voisins_interface :"<<endl;
+    //affiche_vector(voisins_interface);
 
     while ( !(convergence) && (it < it_max) )
     {   

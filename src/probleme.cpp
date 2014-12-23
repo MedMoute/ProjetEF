@@ -18,6 +18,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     g->resize(maillage->Get_n_nodes(),1);
 
     u = new VectorXd;
+    u->resize(maillage->Get_n_nodes(),1);
 
     felim = new VectorXd;
     felim->resize(maillage->Get_n_nodes(),1);
@@ -33,26 +34,22 @@ Probleme::Probleme(Maillage monMaillage, int rang)
         partition_noeud[i]=-1;
     }
 
-    vector<vector<int> > voisins_interface;
     voisins_interface.resize(maillage->Get_nb_partitions());
-    vector<vector<int> > voisins_partition;
     voisins_partition.resize(maillage->Get_nb_partitions());
 
-    //cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
+    //cout<<"Task : "<<rang<< " voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
 
     //cout <<"Task : "<<rang<< " Initialisation de tous les parametres de la classe" << endl;
     //cout <<"Task : "<<rang<< " remplissage des vecteurs voisins_partition et voisins_interface"<< endl;
 
 
-    calcul_voisins(voisins_interface, voisins_partition);
+    calcul_voisins();
 
-    cout<<"affichage de voisins_interface"<<endl;
+    //cout<<"affichage de voisins_interface"<<endl;
+    //affiche_vector(voisins_interface);
 
-    affiche_vector(voisins_interface);
-
-    cout<<"affichage de voisins_partition"<<endl;
-
-    affiche_vector(voisins_partition);
+    //cout<<"affichage de voisins_partition"<<endl;
+    //affiche_vector(voisins_partition);
 
 
     /* Calcul de la solution exacte */
@@ -144,7 +141,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 }
 
 
-void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vector<int> > voisins_partition)
+void Probleme::calcul_voisins()
 {
     for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
@@ -292,6 +289,7 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
         {
             //cout<<"Il n'est pas au contact de l'interface"<<endl;
         }
+
      }
 
     /* On trie chaque liste de noeuds des vecteurs voisins_partition et voisins_interface par ordre
@@ -321,12 +319,9 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
         (*vect_it).resize(std::distance((*vect_it).begin(),it));
     }
 
-    //cout<<"voici le vecteur voisins_interface, contenant sur la i-eme ligne la liste ordonnée des noeuds de la partition i voisins de l'interface"<<endl;
 
-    //affiche_vector(voisins_interface);
 
     //cout<<"voici le vecteur voisins_partition, contenant sur la i-eme ligne la liste ordonnée des noeuds de l'interface voisins de la partition i"<<endl;
-
     //affiche_vector(voisins_partition);
 
 }
@@ -591,6 +586,7 @@ Probleme::~Probleme()
     }
 
     vector<vector<int> > Probleme::Get_voisins_partition (){
+
         return voisins_partition;
     }
 
