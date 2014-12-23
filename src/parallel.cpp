@@ -1,6 +1,5 @@
 #include <mpi.h>
 #include "../include/parallel.h"
-
 int rang;
 static int nb_procs;
 
@@ -21,7 +20,7 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
         valeurs_a_envoyer.resize(nb_procs-1);
         valeurs_a_recevoir.resize(nb_procs-1);
         cout<<"le processus de rang "<<rang<<" a comme vecteur u stocké :"<<endl;
-        affichVector(u);
+        //affichVector(u);
 
         for (int i=1;i<nb_procs;i++)
         {

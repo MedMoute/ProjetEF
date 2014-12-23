@@ -153,7 +153,7 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
 
         int numero_partition_triangle=maillage->Get_partition_ref()[maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle];
 
-        cout<<"________________________________"<<endl;
+        //cout<<"________________________________"<<endl;
         cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
         cout<<"c'est l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<endl;;
 
