@@ -48,8 +48,14 @@ int main(int argc, char *argv[])
     //cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
 
     u = *(mon_probleme.Get_u());
+    //cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
+    //affichVector(u);
     second_membre = *(mon_probleme.Get_felim());
+    //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
+    //affichVector(second_membre);
     mat_rigidite = *(mon_probleme.Get_p_K());
+    //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
+    //affich(mat_rigidite);
 
     //cout << "Task : "<<rang<< " Initialisation des variables" << endl;
 

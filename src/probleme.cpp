@@ -144,7 +144,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 }
 
 
-void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vector<int> > voisins_partition)
+void Probleme::calcul_voisins(vector<vector<int> > &voisins_interface, vector<vector<int> > &voisins_partition)
 {
     for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
@@ -591,11 +591,11 @@ Probleme::~Probleme()
     }
 
     vector<vector<int> > Probleme::Get_voisins_partition (){
-        return voisins_partition;
+        return this->voisins_partition;
     }
 
     vector<vector<int> > Probleme::Get_voisins_interface (){
-        return voisins_interface;
+        return this->voisins_interface;
     }
 
     Eigen::SparseMatrix<double>* Probleme::Get_p_K (){

@@ -49,7 +49,7 @@ public :
     void assemblage_pKelem(int , double* , int );
 
     /*Calcule, par parcours des noeuds de l'interface, voisins_interface et voisins_partition */
-    void calcul_voisins(vector<vector<int> >, vector<vector<int> >);
+    void calcul_voisins(vector<vector<int> > &, vector<vector<int> > &);
 
     //Méthodes de Set pour l'encapsulation
     void Set_maillage (Maillage* _maillage);
