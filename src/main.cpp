@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
     Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
     extern int rang;
-    static int nb_procs;
+    extern int nb_procs;
 
     /* Initialisation de MPI */
     MPI_Init( &argc, &argv);

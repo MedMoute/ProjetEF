@@ -5,6 +5,7 @@
 #include "probleme.h"
 
 extern int rang;
+extern int nb_procs;
 
 void initialisation_mpi( int, char ** );
 void communication(VectorXd , vector<vector<int> >, vector<vector<int> >);
