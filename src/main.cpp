@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
 
     Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
-    int rang;
+    extern int rang;
     static int nb_procs;
 
     /* Initialisation de MPI */
@@ -40,18 +40,18 @@ int main(int argc, char *argv[])
     /* Creation des donnees de maillage a partir du fichier lu */
     Maillage mon_maillage=Maillage(FILE);
 
-    cout << "Task : "<<rang<< " creation du maillage réussie" << endl;
+    //cout << "Task : "<<rang<< " creation du maillage réussie" << endl;
 
     /* Calcul des matrices elements finis et des voisinages pour les communciations */
     Probleme mon_probleme=Probleme(mon_maillage, rang);
 
-    cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
+    //cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
 
     u = *(mon_probleme.Get_u());
     second_membre = *(mon_probleme.Get_felim());
     mat_rigidite = *(mon_probleme.Get_p_K());
 
-    cout << "Task : "<<rang<< " Initialisation des variables" << endl;
+    //cout << "Task : "<<rang<< " Initialisation des variables" << endl;
 
     /* Schema iteratif en temps */
     it = 0;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
     /* Mesure du temps en seconde dans la boucle en temps */
     t1 = MPI_Wtime();
-    cout<<"Task : "<<rang<< " Temps horloge avant le calcul mémorisé t1 = "<<t1<<endl;
+    //cout<<"Task : "<<rang<< " Temps horloge avant le calcul mémorisé t1 = "<<t1<<endl;
 
     while ( !(convergence) && (it < it_max) )
     {   

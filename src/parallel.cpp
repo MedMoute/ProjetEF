@@ -27,7 +27,9 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
             for (unsigned int j=0;j<voisins_partition[i].size();j++)
             {
                 valeurs_a_envoyer[i].push_back(u.coeffRef(voisins_partition[i][j],0));
+                cout<<u.coeffRef(voisins_partition[i][j],0)<<" |";
             }
+            cout<<endl;
             MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
             MPI_Recv(&valeurs_a_recevoir[i],voisins_interface[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD,&statut);
         }
