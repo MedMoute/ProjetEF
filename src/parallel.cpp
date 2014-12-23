@@ -30,6 +30,10 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
             }            
             MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
             MPI_Recv(&valeurs_a_recevoir[i],voisins_interface[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD,&statut);
+            for (int k=0;k<valeurs_a_recevoir[i].size();k++)
+            {
+                u.coeffRef(voisins_interface[i-1][k],0)=valeurs_a_recevoir[i-1][k];
+            }
         }
     }
     else
@@ -45,7 +49,11 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
             valeurs_a_envoyer.push_back(u.coeffRef(voisins_interface[rang-1][i],0));
         }
         MPI_Send(&valeurs_a_envoyer,valeurs_a_envoyer.size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD);
-        MPI_Recv(&valeurs_a_recevoir,voisins_partition[rang].size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD,&statut);
+        MPI_Recv(&valeurs_a_recevoir,voisins_partition[rang-1].size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD,&statut);
+        for (int i=0;i<valeurs_a_recevoir.size();i++)
+        {
+            u.coeffRef(voisins_partition[rang-1][i],0)=valeurs_a_recevoir[i];
+        }
     }
     return ;
 }

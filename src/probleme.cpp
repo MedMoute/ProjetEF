@@ -74,6 +74,18 @@ Probleme::Probleme(Maillage monMaillage, int rang)
         }
     }
 
+    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
+    {
+        if (partition_noeud[ind_node]==rang)
+        {
+            u->coeffRef(ind_node,0)+=partition_noeud[ind_node];
+        }
+        else
+        {
+            u->coeffRef(ind_node,0)+=-1;
+        }
+    }
+
     //cout<<"Task : "<<rang<< " calcul des conditions au bords"<<endl;
 
     /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
