@@ -1,7 +1,7 @@
 #include <mpi.h>
 #include "../include/parallel.h"
 int rang;
-static int nb_procs;
+int nb_procs;
 
 /*
  * Initialisation pour chaque processus de son rang et du
@@ -19,17 +19,19 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
         MPI_Status statut;
         vector<vector<double> > valeurs_a_envoyer;
         vector<vector<double> > valeurs_a_recevoir;
-        valeurs_a_envoyer.resize(nb_procs-1);
-        valeurs_a_recevoir.resize(nb_procs-1);
-        cout<<"le processus de rang "<<rang<<" a comme vecteur u stocké :"<<endl;
-        //affichVector(u);
 
+        //valeurs_a_envoyer.resize(nb_procs-1);
+        //valeurs_a_recevoir.resize(nb_procs-1);
+        cout<<"Task : "<<rang<< " sur "<<nb_procs<<endl;
         for (int i=1;i<nb_procs;i++)
         {
+            cout<<"on regarde ce qu'on va envoyer au proc "<<i<<" a savoir les "<<voisins_partition[i].size();
+            cout<<" valeurs de l'interface qui sont voisines de la partition "<<i<<endl;
             for (unsigned int j=0;j<voisins_partition[i].size();j++)
             {
-                valeurs_a_envoyer[i].push_back(u.coeffRef(voisins_partition[i][j],0));
+
                 cout<<u.coeffRef(voisins_partition[i][j],0)<<" |";
+                valeurs_a_envoyer[i].push_back(u.coeffRef(voisins_partition[i][j],0));
             }
             cout<<endl;
             MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
@@ -44,6 +46,7 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
         MPI_Status statut;
         vector<double> valeurs_a_envoyer;
         vector<double> valeurs_a_recevoir;
+        cout<<"Task : "<<rang<< " yo"<<endl;
         for (unsigned int i=0;i<voisins_interface[rang].size();i++)
         {
             valeurs_a_envoyer.push_back(u.coeffRef(voisins_interface[rang][i],0));

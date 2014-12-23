@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
     Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
     extern int rang;
-    static int nb_procs;
+    extern int nb_procs;
 
     /* Initialisation de MPI */
     MPI_Init( &argc, &argv);
@@ -61,6 +61,14 @@ int main(int argc, char *argv[])
     t1 = MPI_Wtime();
     //cout<<"Task : "<<rang<< " Temps horloge avant le calcul mémorisé t1 = "<<t1<<endl;
 
+    vector<vector<int> > voisins_partition = mon_probleme.Get_voisins_partition();
+    vector<vector<int> > voisins_interface = mon_probleme.Get_voisins_interface();
+
+    cout<<"affichage de voisins_partition :"<<endl;
+    affiche_vector(voisins_partition);
+    cout<<"affichage de voisins_interface :"<<endl;
+    affiche_vector(voisins_interface);
+
     while ( !(convergence) && (it < it_max) )
     {   
         cout<<"_________________________"<<endl;
@@ -69,7 +77,7 @@ int main(int argc, char *argv[])
 
         cout<<"Task : "<<rang<< " Echange des valeurs entre interface et partitions"<<endl;
         /* Echange des points aux interfaces pour u a l'iteration n */
-        communication(u, mon_probleme.Get_voisins_partition(), mon_probleme.Get_voisins_interface());
+        communication(u, voisins_partition, voisins_interface);
 
         cout << "Task : "<<rang<< " operation de communication terminee" << endl;
 

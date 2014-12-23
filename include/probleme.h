@@ -42,9 +42,6 @@ private :
 public :
     // constructeur a partir d'un maillage
     Probleme(Maillage , int);
-    void affich(Eigen::SparseMatrix<double>);
-    void affichVector(VectorXd);
-    void affiche_vector(vector<vector<int> >);
     void assemblage(int);
     void assemblage_felim(double* , double , double , double , double , double , double , double
                                     , int , int );
