@@ -13,6 +13,8 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
 {
     if (rang==0)
     {
+    cout << "Task : "<<rang<< " Est entrée dans la fonction de communication de l'interface" << endl;
+
         const int etiquette = 100;
         MPI_Status statut;
         vector<vector<double> > valeurs_a_envoyer;
@@ -27,15 +29,17 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
             for (unsigned int j=0;j<voisins_partition[i].size();j++)
             {
                 valeurs_a_envoyer[i].push_back(u.coeffRef(voisins_partition[i][j],0));
+                cout<<u.coeffRef(voisins_partition[i][j],0)<<" |";
             }
-            cout<<"il envoie au processus "<<i<<" les valeurs de u en les points donnés par voisins_partition["<<i<<"]";
-
+            cout<<endl;
             MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
             MPI_Recv(&valeurs_a_recevoir[i],voisins_interface[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD,&statut);
         }
     }
     else
     {
+    cout << "Task : "<<rang<< " Est entrée dans la fonction de communication de la non-interface" << endl;
+
         const int etiquette = 200;
         MPI_Status statut;
         vector<double> valeurs_a_envoyer;
@@ -47,6 +51,7 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
         MPI_Send(&valeurs_a_envoyer,valeurs_a_envoyer.size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD);
         MPI_Recv(&valeurs_a_recevoir,voisins_partition[rang].size(),MPI_DOUBLE,0,etiquette,MPI_COMM_WORLD,&statut);
     }
+    return ;
 }
 
 double erreur_entre_etapes (VectorXd u, VectorXd u_nouveau)

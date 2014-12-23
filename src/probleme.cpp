@@ -119,7 +119,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
         }
     }
 
-    cout <<"Task : "<<rang<< " etape de pseudo elimination terminee."<<endl;
+    //cout <<"Task : "<<rang<< " etape de pseudo elimination terminee."<<endl;
     //affich(*p_K);
 
     /* On sotcke la diagonale de la matrice de rigidité pour les itérations */

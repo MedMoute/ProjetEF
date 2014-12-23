@@ -11,13 +11,15 @@
 int main(int argc, char *argv[])
 {
     VectorXd u, u_nouveau, second_membre;
-    int it,convergence;
+    Eigen::SparseMatrix<double> mat_rigidite;
+    int it;
+    bool convergence;
     double t1,t2;
     double diffnorm;
 
 
     Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
-    int rang;
+    extern int rang;
     static int nb_procs;
 
     /* Initialisation de MPI */
@@ -38,43 +40,38 @@ int main(int argc, char *argv[])
     /* Creation des donnees de maillage a partir du fichier lu */
     Maillage mon_maillage=Maillage(FILE);
 
-    cout << "Task : "<<rang<< " creation du maillage réussie" << endl;
+    //cout << "Task : "<<rang<< " creation du maillage réussie" << endl;
 
     /* Calcul des matrices elements finis et des voisinages pour les communciations */
     Probleme mon_probleme=Probleme(mon_maillage, rang);
 
-    cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
+    //cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
 
     u = *(mon_probleme.Get_u());
     second_membre = *(mon_probleme.Get_felim());
-    cout<<"yo1"<<endl;
-    
-    // Initialisation tardive de mat_rigidité
-    Eigen::SparseMatrix<double> mat_rigidite = *(mon_probleme.Get_p_Kelim());
+    mat_rigidite = *(mon_probleme.Get_p_K());
 
-    cout<<"yo2"<<endl;
-
-    cout << "Initialisation des variables" << endl;
+    //cout << "Task : "<<rang<< " Initialisation des variables" << endl;
 
     /* Schema iteratif en temps */
     it = 0;
-    convergence = faux;
+    convergence = false;
 
     /* Mesure du temps en seconde dans la boucle en temps */
     t1 = MPI_Wtime();
-    cout<<"temps horloge avant le calcul mémorisé t1 = "<<t1<<endl;
+    //cout<<"Task : "<<rang<< " Temps horloge avant le calcul mémorisé t1 = "<<t1<<endl;
 
     while ( !(convergence) && (it < it_max) )
     {   
-        cout<<"_________"<<endl;
-        cout<<"Iteration "<<it<<endl;
+        cout<<"_________________________"<<endl;
+        cout<<"Task : "<<rang<< " Iteration "<<it<<endl;
         it = it+1;
 
-        cout<<"echange des valeurs entre interface et partitions"<<endl;
+        cout<<"Task : "<<rang<< " Echange des valeurs entre interface et partitions"<<endl;
         /* Echange des points aux interfaces pour u a l'iteration n */
         communication(u, mon_probleme.Get_voisins_partition(), mon_probleme.Get_voisins_interface());
 
-        cout << "operation de communication terminee" << endl;
+        cout << "Task : "<<rang<< " operation de communication terminee" << endl;
 
         /* Calcul de u a l'iteration n+1 */
         calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);

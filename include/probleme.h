@@ -7,6 +7,8 @@
 #include <vector>
 #include <algorithm>
 
+extern int rang;
+
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd ;
 
 class Probleme {
