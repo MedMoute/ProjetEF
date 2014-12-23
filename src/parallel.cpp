@@ -20,12 +20,17 @@ void communication(VectorXd u, vector<vector<int> > voisins_partition, vector<ve
         vector<vector<double> > valeurs_a_recevoir;
         valeurs_a_envoyer.resize(nb_procs-1);
         valeurs_a_recevoir.resize(nb_procs-1);
+        cout<<"le processus de rang "<<rang<<" a comme vecteur u stocké :"<<endl;
+        affichVector(u);
+
         for (int i=1;i<nb_procs;i++)
         {
             for (unsigned int j=0;j<voisins_partition[i].size();j++)
             {
                 valeurs_a_envoyer[i].push_back(u.coeffRef(voisins_partition[i][j],0));
             }
+            cout<<"il envoie au processus "<<i<<" les valeurs de u en les points donnés par voisins_partition["<<i<<"]";
+
             MPI_Send(&valeurs_a_envoyer[i],valeurs_a_envoyer[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD);
             MPI_Recv(&valeurs_a_recevoir[i],voisins_interface[i].size(),MPI_DOUBLE,i,etiquette,MPI_COMM_WORLD,&statut);
         }

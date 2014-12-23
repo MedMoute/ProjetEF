@@ -46,6 +46,14 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     calcul_voisins(voisins_interface, voisins_partition);
 
+    cout<<"affichage de voisins_interface"<<endl;
+
+    affiche_vector(voisins_interface);
+
+    cout<<"affichage de voisins_partition"<<endl;
+
+    affiche_vector(voisins_partition);
+
 
     /* Calcul de la solution exacte */
 
@@ -140,71 +148,71 @@ void Probleme::calcul_voisins(vector<vector<int> > voisins_interface, vector<vec
 {
     for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
-        int ind_pt1=maillage->Get_triangles_sommets()[3*ind_triangle]-1;
+        int ind_pt1=(maillage->Get_triangles_sommets())[3*ind_triangle]-1;
         int ind_pt2=maillage->Get_triangles_sommets()[3*ind_triangle+1]-1;
         int ind_pt3=maillage->Get_triangles_sommets()[3*ind_triangle+2]-1;
 
         int numero_partition_triangle=maillage->Get_partition_ref()[maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle];
 
         //cout<<"________________________________"<<endl;
-        //cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
-        //cout<<"c'est l element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<endl;;
+        cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
+        cout<<"c'est l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<endl;;
 
         /* Un noeud Ã  l'interface est reconnu par son appartenance Ã  deux partitions distinctes. */
 
-        //cout<<"le sommet "<<ind_pt1+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt1]<<endl;
+        cout<<"le sommet "<<ind_pt1+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt1]<<endl;
 
         if (partition_noeud[ind_pt1]==-1)
         {
-            //cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
+            cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
             partition_noeud[ind_pt1]=numero_partition_triangle;
         }
         else if(partition_noeud[ind_pt1]==numero_partition_triangle)
         {
-            //cout<<"il est deja sur la partition de son triangle"<<endl;
+            cout<<"il est deja sur la partition de son triangle"<<endl;
         }
         else
         {
-            //cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
+            cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
             partition_noeud[ind_pt1]=0;
         }
 
-        //cout<<"le sommet "<<ind_pt2+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt2]<<endl;
+        cout<<"le sommet "<<ind_pt2+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt2]<<endl;
 
         if (partition_noeud[ind_pt2]==-1)
         {
-            //cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
+            cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
             partition_noeud[ind_pt2]=numero_partition_triangle;
         }
         else if(partition_noeud[ind_pt2]==numero_partition_triangle)
         {
-            //cout<<"il est deja sur la partition de son triangle"<<endl;
+            cout<<"il est deja sur la partition de son triangle"<<endl;
         }
         else
         {
-            //cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
+            cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
             partition_noeud[ind_pt2]=0;
         }
 
-        //cout<<"le sommet "<<ind_pt3+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt3]<<endl;
+        cout<<"le sommet "<<ind_pt3+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt3]<<endl;
 
         if (partition_noeud[ind_pt3]==-1)
         {
-            //cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
+            cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
             partition_noeud[ind_pt3]=numero_partition_triangle;
         }
         else if(partition_noeud[ind_pt3]==numero_partition_triangle)
         {
-            //cout<<"il est deja sur la partition de son triangle"<<endl;
+            cout<<"il est deja sur la partition de son triangle"<<endl;
         }
         else
         {
-            //cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
+            cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
             partition_noeud[ind_pt3]=0;
         }
 
-        //cout<<"apres parcours de l element "<<maillage->n_elems-maillage->n_triangles+ind_triangle+1<<" les noeuds "<<ind_pt1+1<<", "<<ind_pt2+1<<" et "<<ind_pt3+1<<endl
-        //<<" sont sur les partitions "<<partition_noeud[ind_pt1]<<", "<<partition_noeud[ind_pt2]<<" et "<<partition_noeud[ind_pt3]<<endl;
+        cout<<"apres parcours de l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<" les noeuds "<<ind_pt1+1<<", "<<ind_pt2+1<<" et "<<ind_pt3+1<<endl
+        <<" sont sur les partitions "<<partition_noeud[ind_pt1]<<", "<<partition_noeud[ind_pt2]<<" et "<<partition_noeud[ind_pt3]<<endl;
     }
 
     /* On sait maintenant quel noeud appartient Ã  quel triangle. En parcourant Ã  nouveau les triangles,
