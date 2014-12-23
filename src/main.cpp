@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
     int it,convergence;
     double t1,t2;
     double diffnorm;
-    Eigen::SparseMatrix<double> mat_rigidite;
+
+
     Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
     int rang;
     static int nb_procs;
@@ -30,23 +31,28 @@ int main(int argc, char *argv[])
 
     if (FILE.fail())
     {
-        std::cout<<"erreur lors de l'ouverture de FILE"<<std::endl;
+        std::cout<<"Task : "<<rang<< " erreur lors de l'ouverture de FILE"<<std::endl;
         return -1;
     }
 
     /* Creation des donnees de maillage a partir du fichier lu */
     Maillage mon_maillage=Maillage(FILE);
 
-    cout << "creation du maillage réussie" << endl;
+    cout << "Task : "<<rang<< " creation du maillage réussie" << endl;
 
     /* Calcul des matrices elements finis et des voisinages pour les communciations */
     Probleme mon_probleme=Probleme(mon_maillage, rang);
 
-    cout << "creation du probleme reussie" << endl;
+    cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
 
     u = *(mon_probleme.Get_u());
-    mat_rigidite = *(mon_probleme.Get_p_Kelim());
     second_membre = *(mon_probleme.Get_felim());
+    cout<<"yo1"<<endl;
+    
+    // Initialisation tardive de mat_rigidité
+    Eigen::SparseMatrix<double> mat_rigidite = *(mon_probleme.Get_p_Kelim());
+
+    cout<<"yo2"<<endl;
 
     cout << "Initialisation des variables" << endl;
 
