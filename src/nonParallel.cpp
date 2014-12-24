@@ -14,9 +14,9 @@ void affichVector(VectorXd V)
     for(int i=0;i<V.rows();i++)
     {
         std::cout.precision(2);
-        std::cout<<V(i,0);
-        std::cout<<std::endl;
+        std::cout<<V(i,0)<<"|";
     }
+    std::cout<<"__________"<<std::endl;
 }
 void affich(Eigen::SparseMatrix<double> _mat)
 {
