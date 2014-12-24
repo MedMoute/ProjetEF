@@ -36,7 +36,7 @@ private :
     //int *tab_local_global;
     Eigen::SparseMatrix<double> *p_K ; // matrice K
     Eigen::SparseMatrix<double> *p_Kelim ; // matrice apres pseudo elimination
-    Eigen::DiagonalMatrix<double, Eigen::Dynamic> *diag; // diagonale de la matrice de rigidité
+    Eigen::SparseMatrix<double> *diag; // diagonale de la matrice de rigidité
 
     // methodes
 public :
@@ -65,7 +65,7 @@ public :
 
     void Set_p_K (Eigen::SparseMatrix<double>* _p_K);
     void Set_p_Kelim (Eigen::SparseMatrix<double>* _p_Kelim);
-    void Set_diag (Eigen::DiagonalMatrix<double,Eigen::Dynamic>* _diag);
+    void Set_diag (Eigen::SparseMatrix<double>* _diag);
 
     //Méthodes "Get" pour l'encapsulation
 
@@ -81,7 +81,7 @@ public :
 
     Eigen::SparseMatrix<double>* Get_p_K ();
     Eigen::SparseMatrix<double>* Get_p_Kelim ();
-    Eigen::DiagonalMatrix<double,Eigen::Dynamic>* Get_diag ();
+    Eigen::SparseMatrix<double>* Get_diag ();
 
     //Destructeur
     ~Probleme();

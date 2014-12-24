@@ -26,7 +26,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     p_K = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
     //p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
-    diag = new Eigen::DiagonalMatrix<double, Eigen::Dynamic>;
+    diag = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
 
     partition_noeud = new int[maillage->Get_n_nodes()];
     for (int i=0;i<maillage->Get_n_nodes();i++)
@@ -134,8 +134,10 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     /* On sotcke la diagonale de la matrice de rigidité pour les itérations */
 
-    (*diag).diagonal() = (*p_K).diagonal();
-
+    for (int i=0;i<maillage->Get_n_nodes();i++)
+    {
+        diag->coeffRef(i,i)=p_K->coeffRef(i,i);
+    }
     /* On retire cette diagonale de la matrice de rigidité car le produit matriciel au cours
      * des itérations ne les fait pas intervenir ; une boucle pourrait etre évitée en utilisant
      * les fonctions diagonal de eigen mais la version installee empeche d'ajouter des matrices creuses
@@ -568,7 +570,7 @@ Probleme::~Probleme()
         p_Kelim=_p_Kelim;
     }
 
-    void Probleme::Set_diag (Eigen::DiagonalMatrix<double,Eigen::Dynamic>* _diag) {
+    void Probleme::Set_diag (Eigen::SparseMatrix<double>* _diag) {
         diag=_diag;
     }
 
@@ -614,6 +616,6 @@ Probleme::~Probleme()
         return p_Kelim;
     }
 
-    Eigen::DiagonalMatrix<double,Eigen::Dynamic>* Probleme::Get_diag () {
+    Eigen::SparseMatrix<double>* Probleme::Get_diag () {
         return diag;
     }

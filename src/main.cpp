@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
 {
     VectorXd u, u_nouveau, second_membre;
     Eigen::SparseMatrix<double> mat_rigidite;
+    Eigen::SparseMatrix<double> diag;
     int it;
     bool convergence;
     double t1,t2;
@@ -54,6 +55,7 @@ int main(int argc, char *argv[])
     //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
     //affichVector(second_membre);
     mat_rigidite = *(mon_probleme.Get_p_K());
+    diag = *(mon_probleme.Get_diag());
     //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
     //affich(mat_rigidite);
 
@@ -137,10 +139,20 @@ int main(int argc, char *argv[])
         cout<<"voici le vecteur u dans le proc "<<rang<<" après communication"<<endl;
         affichVector(u);
 
-        cout << "Task : "<<rang<< " operation de communication vers proc 0 terminee" << endl;
+        cout << "Task : "<<rang<< " operation de communication terminee" << endl;
 
         /* Calcul de u a l'iteration n+1 */
-        calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);
+        //calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);
+        for(int i=0;i<mon_maillage.Get_n_nodes();i++)
+        {
+            if (mon_probleme.partition_noeud[i]=rang)
+            {
+                diag.coeffRef(i,i)=1/diag.coeffRef(i,i);
+            }
+
+        }
+        VectorXd vecteur_interm = mat_rigidite * u + second_membre;
+        u_nouveau = diag * vecteur_interm;
 
         /* Calcul de l'erreur globale */
         diffnorm =  erreur_entre_etapes (u, u_nouveau);
