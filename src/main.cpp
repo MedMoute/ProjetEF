@@ -83,9 +83,39 @@ int main(int argc, char *argv[])
 
         cout<<"Task : "<<rang<< " Echange des valeurs entre interface et partitions"<<endl;
         /* Echange des points aux interfaces pour u a l'iteration n */
-        communication(u, voisins_partition, voisins_interface);
+        //communication(u, voisins_partition, voisins_interface);
 
-        cout << "Task : "<<rang<< " operation de communication terminee" << endl;
+
+        vector<double> valeurs_a_envoyer;
+        if (rang!=0)
+        {
+            int taille = voisins_interface[rang-1].size();
+            for (unsigned int i=0;i<taille;i++)
+            {
+               valeurs_a_envoyer.push_back(u.coeffRef(voisins_interface[rang-1][i]-1,0));
+            }
+            MPI_Send(&valeurs_a_envoyer[0],taille,MPI_DOUBLE,0,0,MPI_COMM_WORLD);
+        }
+        else
+        {
+            for (int num_proc=1;num_proc<nb_procs;num_proc++)
+            {
+                int taille = voisins_interface[num_proc-1].size();
+                vector<double> temp(taille);
+                MPI_Recv(&temp[0],taille,MPI_DOUBLE,num_proc,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                for (int ind=0;ind<taille;ind++)
+                {
+                    u.coeffRef(voisins_interface[num_proc-1][ind]-1,0)=temp[ind];
+                }
+            }
+        }
+        cout<<"voici le vecteur u dans le proc "<<rang<<endl;
+        affichVector(u);
+
+
+        
+
+        cout << "Task : "<<rang<< " operation de communication vers proc 0 terminee" << endl;
 
         /* Calcul de u a l'iteration n+1 */
         calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);
