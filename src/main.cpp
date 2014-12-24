@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 {
     VectorXd u, u_nouveau, second_membre;
     Eigen::SparseMatrix<double> mat_rigidite;
-    Eigen::SparseMatrix<double> diag;
+    Eigen::SparseMatrix<double> diag,diag_inv;
     int it;
     bool convergence;
     double t1,t2;
@@ -49,15 +49,43 @@ int main(int argc, char *argv[])
     //cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
 
     u = *(mon_probleme.Get_u());
-    cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
-    affichVector(u);
+    //cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
+    //affichVector(u);
     second_membre = *(mon_probleme.Get_felim());
-    cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
-    affichVector(second_membre);
+    //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
+    //affichVector(second_membre);
     mat_rigidite = *(mon_probleme.Get_p_K());
-    diag = *(mon_probleme.Get_diag());
     cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
     affich(mat_rigidite);
+    //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
+    //affich(diag);
+
+    diag_inv= *(mon_probleme.Get_diag());
+    //Récupération de la diagonale globale pour ne pas avoir de 0 
+    //Dans la diagonale, qui causent l'apparition de "inf" 
+    vector<double> diag_a_envoyer;
+    vector<double> diag_a_recevoir(mon_maillage.Get_n_nodes());
+
+    for (unsigned int j=0;j<mon_maillage.Get_n_nodes();j++)
+    {
+       diag_a_envoyer.push_back(diag_inv.coeffRef(j,j));
+    }
+    MPI_Allreduce(&diag_a_envoyer[0],&diag_a_recevoir[0],mon_maillage.Get_n_nodes(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);   
+    for (int j=0;j<mon_maillage.Get_n_nodes();j++)
+    {
+       diag_inv.coeffRef(j,j)=diag_a_recevoir[j];
+    }
+    cout<<"affichage de la diagonale totale"<<endl;
+    affich(diag_inv);
+
+    //Inversion de diag en dehors de la boucle de calcul
+    for(int i=0;i<mon_maillage.Get_n_nodes();i++)
+    {
+        if (mon_probleme.Get_partition_noeud()[i]=rang)
+        {
+            diag_inv.coeffRef(i,i)=1/diag_inv.coeffRef(i,i);
+        }
+    }
 
     //cout << "Task : "<<rang<< " Initialisation des variables" << endl;
 
@@ -79,15 +107,15 @@ int main(int argc, char *argv[])
 
     while ( !(convergence) && (it < it_max) )
     {   
-        cout<<"_________________________"<<endl;
-        cout<<"Task : "<<rang<< " Iteration "<<it<<endl;
+        //cout<<"_________________________"<<endl;
+        //cout<<"Task : "<<rang<< " Iteration "<<it<<endl;
         it = it+1;
 
-        cout<<"Task : "<<rang<< " Echange des valeurs entre interface et partitions"<<endl;
+        //cout<<"Task : "<<rang<< " Echange des valeurs entre interface et partitions"<<endl;
         /* Echange des points aux interfaces pour u a l'iteration n */
         //communication(u, voisins_partition, voisins_interface);
-        cout<<"voici le vecteur u dans le proc "<<rang<<" avant communication"<<endl;
-        affichVector(u);
+        //cout<<"voici le vecteur u dans le proc "<<rang<<" avant communication"<<endl;
+        //affichVector(u);
 
         vector<double> valeurs_a_envoyer;
         if (rang!=0)
@@ -136,25 +164,25 @@ int main(int argc, char *argv[])
             }
         }
 
-        cout<<"voici le vecteur u dans le proc "<<rang<<" après communication"<<endl;
-        affichVector(u);
+        //cout<<"voici le vecteur u dans le proc "<<rang<<" après communication"<<endl;
+        //affichVector(u);
 
-        cout << "Task : "<<rang<< " operation de communication terminee" << endl;
+        //cout << "Task : "<<rang<< " operation de communication terminee" << endl;
 
         /* Calcul de u a l'iteration n+1 */
         //calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);
-        for(int i=0;i<mon_maillage.Get_n_nodes();i++)
-        {
-            if (mon_probleme.Get_partition_noeud()[i]=rang)
-            {
-                diag.coeffRef(i,i)=1/diag.coeffRef(i,i);
-            }
 
-        }
-        affich(diag);
+        //cout<<endl;
+        //cout<<"U #_"<<rang<<" Avant calcul :"<<endl;
+        //affichVector(u);
+        //cout<<endl;
 
         VectorXd vecteur_interm = mat_rigidite * u + second_membre;
-        u_nouveau = diag * vecteur_interm;
+        u_nouveau = diag_inv * vecteur_interm;
+        
+        //cout<<"U #_"<<rang<<" Apres calcul :"<<endl;
+        //affichVector(u_nouveau);
+        //cout<<endl;
 
         /* Calcul de l'erreur globale */
         diffnorm =  erreur_entre_etapes (u, u_nouveau);
@@ -165,9 +193,9 @@ int main(int argc, char *argv[])
         convergence = ( diffnorm < eps );
 
         /* Affichage pour le processus 0 de la difference */
-        if ( (rang == 0) && ( (it % 100) == 0) )
+        if (rang == 0) 
         {
-            printf("Iteration %d erreur_globale = %g\n", it, diffnorm);
+            cout<<"Iteration "<<it<<" : Erreur_globale = "<<diffnorm<<endl;
         }
     }
 
@@ -176,7 +204,7 @@ int main(int argc, char *argv[])
 
     if (rang ==  0) {
       /* Affichage du temps de convergence par le processus 0 */
-      printf("Convergence apres %d iterations en %f secs\n", it, t2-t1);
+      cout<<"Convergence apres "<<it<<" iterations en "<< t2-t1<<" secs"<<endl;
 
       /* Comparaison de la solution calculee et de la solution exacte
        * sur le processus 0 */

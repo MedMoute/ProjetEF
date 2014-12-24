@@ -79,6 +79,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
         if (partition_noeud[ind_node]==rang)
         {
             u->coeffRef(ind_node,0)+=partition_noeud[ind_node];
+            
         }
         else
         {
