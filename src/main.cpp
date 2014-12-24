@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 
     /*lecture du fichier .msh*/
     ifstream FILE;
-    FILE.open("./fichierTest/testpart.msh", ios::in);
+    FILE.open("./fichierTest/testSimple.msh", ios::in);
 
     if (FILE.fail())
     {
@@ -49,15 +49,15 @@ int main(int argc, char *argv[])
     //cout << "Task : "<<rang<< " creation du probleme reussie" << endl;
 
     u = *(mon_probleme.Get_u());
-    //cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
-    //affichVector(u);
+    cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
+    affichVector(u);
     second_membre = *(mon_probleme.Get_felim());
-    //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
-    //affichVector(second_membre);
+    cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
+    affichVector(second_membre);
     mat_rigidite = *(mon_probleme.Get_p_K());
     diag = *(mon_probleme.Get_diag());
-    //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
-    //affich(mat_rigidite);
+    cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
+    affich(mat_rigidite);
 
     //cout << "Task : "<<rang<< " Initialisation des variables" << endl;
 
@@ -145,12 +145,14 @@ int main(int argc, char *argv[])
         //calcul(u,  u_nouveau, mat_rigidite, diagonale, second_membre);
         for(int i=0;i<mon_maillage.Get_n_nodes();i++)
         {
-            if (mon_probleme.partition_noeud[i]=rang)
+            if (mon_probleme.Get_partition_noeud()[i]=rang)
             {
                 diag.coeffRef(i,i)=1/diag.coeffRef(i,i);
             }
 
         }
+        affich(diag);
+
         VectorXd vecteur_interm = mat_rigidite * u + second_membre;
         u_nouveau = diag * vecteur_interm;
 
