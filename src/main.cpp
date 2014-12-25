@@ -12,6 +12,7 @@ int main(int argc, char *argv[])
 {
     VectorXd u, u_nouveau, u_avant_com, second_membre,u_exact;
     Eigen::SparseMatrix<double> mat_rigidite;
+    Eigen::MatrixXd d_mat_rigidite_local, diag_inv_local;
     Eigen::SparseMatrix<double> diag,diag_inv;
     int it;
     bool convergence;
@@ -53,6 +54,8 @@ int main(int argc, char *argv[])
     //cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
     //affichVector(u);
     second_membre = *(mon_probleme.Get_felim());
+    Eigen::VectorXd second_membre_global(mon_maillage.Get_n_nodes());
+    MPI_Allreduce(second_membre.data(),second_membre_global.data(),second_membre.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
     //affichVector(second_membre);
     mat_rigidite = *(mon_probleme.Get_p_K());
@@ -60,12 +63,22 @@ int main(int argc, char *argv[])
     //affich(mat_rigidite);
     //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
     //affich(diag);
+    d_mat_rigidite_local = Eigen::MatrixXd(mat_rigidite);
+    Eigen::MatrixXd K_total(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
+    MPI_Allreduce(d_mat_rigidite_local.data(),K_total.data(),d_mat_rigidite_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
     u_exact = *(mon_probleme.Get_uexa());
 
     diag_inv= *(mon_probleme.Get_diag());
+    diag_inv_local = Eigen::MatrixXd(diag_inv);
+    Eigen::MatrixXd diag_global(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
+    MPI_Allreduce(diag_inv_local.data(),diag_global.data(),diag_inv.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+    K_total+=diag_global;
+
     //Récupération de la diagonale globale pour ne pas avoir de 0 
     //Dans la diagonale, qui causent l'apparition de "inf" 
+    /*
     vector<double> diag_a_envoyer;
     vector<double> diag_a_recevoir(mon_maillage.Get_n_nodes());
 
@@ -77,7 +90,8 @@ int main(int argc, char *argv[])
     for (int j=0;j<mon_maillage.Get_n_nodes();j++)
     {
        diag_inv.coeffRef(j,j)=diag_a_recevoir[j];
-    }
+    }*/
+
     //cout<<"affichage de la diagonale totale"<<endl;
     //affich(diag_inv);
 
@@ -190,7 +204,7 @@ int main(int argc, char *argv[])
         //affichVector(u);
         //cout<<endl;
 
-        VectorXd vecteur_interm = mat_rigidite * u + second_membre;
+        VectorXd vecteur_interm = (-mat_rigidite) * u + second_membre;
         //cout<<"vecteur_interm vaut dans le proc "<<rang<<endl;
         //affichVector(vecteur_interm);
         u_nouveau = diag_inv * vecteur_interm;
@@ -254,6 +268,9 @@ int main(int argc, char *argv[])
     affichVector(u);
     cout<<"voici la solution exacte"<<endl;
     affichVector(u_exact);
+    cout<<"voici K_total*u-second_membre_global qui doit etre nul si l'inversion du probleme lineaire a fonctionné"<<endl;
+    affichVector(K_total*u-second_membre_global);
+    
 
     double erreur_exa=0;
     for (int iter=0;iter<u.size();iter++)

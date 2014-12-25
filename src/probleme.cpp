@@ -58,6 +58,8 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     {
         uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
     }
+    cout<<"affichage de la solution exacte dans probleme par le proc "<<rang<<endl;
+    affichVector(*uexa);
 
     //cout <<"Task : "<<rang<< " calcul de la solution exacte"<<endl;
 
