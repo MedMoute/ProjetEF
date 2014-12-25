@@ -23,7 +23,7 @@ endif
 main: $(OBJ)
 	@$(CXX) -o $@ $^ $(LDFLAGS)
 
-main.o: ./include/probleme.h
+main.o: ./include/param.h
 
 %.o: %.cpp
 	@$(CXX) $(CFLAGS) $< -o $@  -I ./eigen  

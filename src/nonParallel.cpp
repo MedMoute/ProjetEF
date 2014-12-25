@@ -22,8 +22,6 @@ void affichVector(VectorXd V)
 }
 void affich(Eigen::SparseMatrix<double> _mat)
 {
-
-    std::cout<<std::endl<<"Affichage de la matrice de rigidite :";
     std::cout<<std::endl<<"-------------------------------------"<<std::endl;
 
     if (_mat.size()!=0)

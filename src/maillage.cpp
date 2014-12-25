@@ -181,6 +181,7 @@ Maillage::Maillage(ifstream& fd) {
 
 Maillage::~Maillage()
 {
+  /*
     delete [] triangles_sommets;
     delete [] nodes_coords;
     delete [] nodes_ref;
@@ -189,6 +190,7 @@ Maillage::~Maillage()
     delete [] elems_type;
     delete [] n_partition;
     delete [] partition_ref;
+    */
 }
 
 // correspondance entre le type d'element et le nb de sommets de cet element

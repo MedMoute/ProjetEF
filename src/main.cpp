@@ -27,10 +27,11 @@ int main(int argc, char *argv[])
     MPI_Init( &argc, &argv);
     MPI_Comm_rank( MPI_COMM_WORLD, &rang);
     MPI_Comm_size( MPI_COMM_WORLD, &nb_procs);
+    cout<<"je suis le proc "<<rang<<endl;
 
     /*lecture du fichier .msh*/
     ifstream FILE;
-    FILE.open("./fichierTest/testSimple.msh", ios::in);
+    FILE.open("./fichierTest/testpart.msh", ios::in);
 
     if (FILE.fail())
     {
@@ -55,8 +56,8 @@ int main(int argc, char *argv[])
     //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
     //affichVector(second_membre);
     mat_rigidite = *(mon_probleme.Get_p_K());
-    cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
-    affich(mat_rigidite);
+    //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
+    //affich(mat_rigidite);
     //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
     //affich(diag);
 
@@ -75,17 +76,26 @@ int main(int argc, char *argv[])
     {
        diag_inv.coeffRef(j,j)=diag_a_recevoir[j];
     }
-    cout<<"affichage de la diagonale totale"<<endl;
-    affich(diag_inv);
+    //cout<<"affichage de la diagonale totale"<<endl;
+    //affich(diag_inv);
 
     //Inversion de diag en dehors de la boucle de calcul
     for(int i=0;i<mon_maillage.Get_n_nodes();i++)
     {
-        if (mon_probleme.Get_partition_noeud()[i]=rang)
+        if ((mon_probleme.Get_partition_noeud())[i]==rang)
         {
             diag_inv.coeffRef(i,i)=1/diag_inv.coeffRef(i,i);
         }
+        else
+        {
+            diag_inv.coeffRef(i,i)=0;
+        }
     }
+
+    //cout<<"la matrice "<<endl;
+    //affich(mat_rigidite);
+    //cout<<"diagonale "<<endl;
+    //affich(diag_inv);
 
     //cout << "Task : "<<rang<< " Initialisation des variables" << endl;
 
@@ -105,7 +115,7 @@ int main(int argc, char *argv[])
     //cout<<"affichage de voisins_interface :"<<endl;
     //affiche_vector(voisins_interface);
 
-    while ( !(convergence) && (it < it_max) )
+    while ( !(convergence) && (it < 20) )
     {   
         //cout<<"_________________________"<<endl;
         //cout<<"Task : "<<rang<< " Iteration "<<it<<endl;
@@ -178,6 +188,8 @@ int main(int argc, char *argv[])
         //cout<<endl;
 
         VectorXd vecteur_interm = mat_rigidite * u + second_membre;
+        //cout<<"vecteur_interm vaut dans le proc "<<rang<<endl;
+        //affichVector(vecteur_interm);
         u_nouveau = diag_inv * vecteur_interm;
         
         //cout<<"U #_"<<rang<<" Apres calcul :"<<endl;
