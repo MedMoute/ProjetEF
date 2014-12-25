@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[])
 {
-    VectorXd u, u_nouveau, second_membre;
+    VectorXd u, u_nouveau, u_avant_com, second_membre,u_exact;
     Eigen::SparseMatrix<double> mat_rigidite;
     Eigen::SparseMatrix<double> diag,diag_inv;
     int it;
@@ -60,6 +60,8 @@ int main(int argc, char *argv[])
     //affich(mat_rigidite);
     //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
     //affich(diag);
+
+    u_exact = *(mon_probleme.Get_uexa());
 
     diag_inv= *(mon_probleme.Get_diag());
     //Récupération de la diagonale globale pour ne pas avoir de 0 
@@ -115,11 +117,12 @@ int main(int argc, char *argv[])
     //cout<<"affichage de voisins_interface :"<<endl;
     //affiche_vector(voisins_interface);
 
-    while ( !(convergence) && (it < 20) )
+    while ( !(convergence) && (it < 1000) )
     {   
         //cout<<"_________________________"<<endl;
         //cout<<"Task : "<<rang<< " Iteration "<<it<<endl;
         it = it+1;
+        u_avant_com = u;
 
         //cout<<"Task : "<<rang<< " Echange des valeurs entre interface et partitions"<<endl;
         /* Echange des points aux interfaces pour u a l'iteration n */
@@ -197,7 +200,27 @@ int main(int argc, char *argv[])
         //cout<<endl;
 
         /* Calcul de l'erreur globale */
-        diffnorm =  erreur_entre_etapes (u, u_nouveau);
+        //diffnorm =  erreur_entre_etapes (u, u_nouveau);
+        //cout<<"calcul de l'erreur en norme infinie"<<endl;
+        //cout<<"voici u avant comm"<<endl;
+        //affichVector(u_avant_com);
+        //cout<<"et u après calcul"<<endl;
+        //affichVector(u_nouveau);
+
+        double erreur_locale, diffnorm;
+
+        erreur_locale = 0;
+        for (int iter=0; iter<u_avant_com.size(); iter++)
+        {
+            double temp = fabs( u_avant_com[iter] - u_nouveau[iter] );
+            if (erreur_locale < temp) 
+            {
+                erreur_locale = temp;
+            }
+        }
+
+        /* Calcul de l'erreur sur tous les sous-domaines */
+        MPI_Allreduce( &erreur_locale, &diffnorm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
 
         u = u_nouveau ;
 
@@ -211,16 +234,49 @@ int main(int argc, char *argv[])
         }
     }
 
+    cout<<"voici le vecteur u obtenu sur le proc "<<rang<<endl;
+    affichVector(u);
+
+    vector<double> sol_a_envoyer;
+    vector<double> sol_a_recevoir(mon_maillage.Get_n_nodes());
+
+    for (unsigned int j=0;j<mon_maillage.Get_n_nodes();j++)
+    {
+       sol_a_envoyer.push_back(u.coeffRef(j,0));
+    }
+    MPI_Allreduce(&sol_a_envoyer[0],&sol_a_recevoir[0],mon_maillage.Get_n_nodes(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);   
+    for (int j=0;j<mon_maillage.Get_n_nodes();j++)
+    {
+       u.coeffRef(j,0)=sol_a_recevoir[j];
+    }
+
+    cout<<"voici le vecteur u après réduction sur tous les procs"<<endl;
+    affichVector(u);
+    cout<<"voici la solution exacte"<<endl;
+    affichVector(u_exact);
+
+    double erreur_exa=0;
+    for (int iter=0;iter<u.size();iter++)
+    {
+        double temp = fabs( u.coeffRef(iter,0) - u_exact.coeffRef(iter,0) );
+        if (erreur_exa < temp) 
+        {
+            erreur_exa = temp;
+        }
+    }
     /* Mesure du temps a la sortie de la boucle */
     t2 = MPI_Wtime();
 
     if (rang ==  0) {
       /* Affichage du temps de convergence par le processus 0 */
       cout<<"Convergence apres "<<it<<" iterations en "<< t2-t1<<" secs"<<endl;
+      cout<<"L'erreur par rapport a la solution exacte vaut "<<erreur_exa<<endl;
 
       /* Comparaison de la solution calculee et de la solution exacte
        * sur le processus 0 */
     }
+
+
 
     finalisation_mpi();
     return 0;
