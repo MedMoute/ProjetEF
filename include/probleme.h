@@ -35,6 +35,7 @@ private :
 
     //int *tab_local_global;
     Eigen::SparseMatrix<double> *p_K ; // matrice K
+    Eigen::SparseMatrix<double> *p_M; // matrice de masse
     Eigen::SparseMatrix<double> *p_Kelim ; // matrice apres pseudo elimination
     Eigen::SparseMatrix<double> *diag; // diagonale de la matrice de rigidité
 
@@ -64,6 +65,8 @@ public :
     void Set_voisins_partition (vector<vector<int> > _voisins_partition);
 
     void Set_p_K (Eigen::SparseMatrix<double>* _p_K);
+    void Set_p_M (Eigen::SparseMatrix<double>* _p_M);
+
     void Set_p_Kelim (Eigen::SparseMatrix<double>* _p_Kelim);
     void Set_diag (Eigen::SparseMatrix<double>* _diag);
 
@@ -80,6 +83,8 @@ public :
     vector<vector<int> > Get_voisins_interface ();
 
     Eigen::SparseMatrix<double>* Get_p_K ();
+    Eigen::SparseMatrix<double>* Get_p_M ();
+
     Eigen::SparseMatrix<double>* Get_p_Kelim ();
     Eigen::SparseMatrix<double>* Get_diag ();
 

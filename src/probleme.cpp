@@ -22,8 +22,16 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     felim = new VectorXd;
     felim->resize(maillage->Get_n_nodes(),1);
+    for (int i=0;i<maillage->Get_n_nodes();i++)
+    {
+        double x=maillage->Get_nodes_coords()[3*i+0];
+        double y=maillage->Get_nodes_coords()[3*i+1];
+        double addedCoeff = calcul_f(x,y);
+        felim->coeffRef(i,0)+=addedCoeff;
+    }
 
     p_K = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
+    p_M = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
     //p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
     diag = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
@@ -58,8 +66,8 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     {
         uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
     }
-    cout<<"affichage de la solution exacte dans probleme par le proc "<<rang<<endl;
-    affichVector(*uexa);
+    //cout<<"affichage de la solution exacte dans probleme par le proc "<<rang<<endl;
+    //affichVector(*uexa);
 
     //cout <<"Task : "<<rang<< " calcul de la solution exacte"<<endl;
 
@@ -94,10 +102,8 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
 
     assemblage(rang);
+    *felim = (*p_M)*(*felim); 
 
-    //cout<<"Task : "<<rang<< " assemblage de la matrice de rigidite reussie."<<endl;
-
-    //affich(*p_K);
 
     /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
 
@@ -107,14 +113,15 @@ Probleme::Probleme(Maillage monMaillage, int rang)
      * felim a ete obtenu par formules de quadrature. Le second membre en g est obtenu par interpolation
      */
 
+    //cout<<"felim avant pseudo eliminiation"<<endl;
+    //affichVector(*felim);
+
     *felim=*felim-(*p_K) * (*g);
 
     /* Mise en oeuvre de la pseudo elimination */
-
+    
     for(int i=0;i<maillage->Get_n_nodes();i++)
     {
-        /* seuls les elements du bord sur felim doivent etre changes */
-
         if (maillage->Get_nodes_ref()[i]==1)
         {
             double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
@@ -123,14 +130,13 @@ Probleme::Probleme(Maillage monMaillage, int rang)
             {
                 if (j!=i)
                 {
-                    /* Mise a zero des lignes et colonne (hors diagonale) dont les indices sont sur le bord */
-
                     p_K->coeffRef(i,j)=0;
                     p_K->coeffRef(j,i)=0;
                 }
             }
         }
     }
+    
 
     //cout <<"Task : "<<rang<< " etape de pseudo elimination terminee."<<endl;
     //affich(*p_K);
@@ -406,9 +412,44 @@ void Probleme::assemblage(int rang)
         double s=(a+b+c)/2;
         double aire_triangle = sqrt(s*(s-a)*(s-b)*(s-c));
 
+        
+        double *p_M_elem;
+        p_M_elem = new double[9];
+        for(int i=0;i<3;i++)
+        {
+            for(int j=0;j<3;j++)
+            {
+                if (i==j)
+                {
+                    p_M_elem[3*i+j]=aire_triangle/6;
+                }
+                else
+                {
+                    p_M_elem[3*i+j]=aire_triangle/12;
+                }
+            }
+        }
+
+        for(int i=0;i<3;i++)
+        {
+            int ind_global_1=maillage->Get_triangles_sommets()[3*ind_triangle+i];
+            for(int j=0;j<3;j++)
+            {
+                int ind_global_2=maillage->Get_triangles_sommets()[3*ind_triangle+j];
+                if (!PARALLELE || partition_noeud[ind_global_1-1]==rang)
+                {
+                    double AddedCoeff = p_M_elem[3*i+j];
+                    p_M->coeffRef(ind_global_1-1,ind_global_2-1)+=AddedCoeff;
+                }
+            }
+        }
+
+        delete p_M_elem;
+        p_M_elem=0;
+
         /* Assemblage de felim */
 
-        assemblage_felim(tab, x12, x13, x1, y12, y13, y1, aire_triangle, ind_triangle, rang);
+        //assemblage_felim(tab, x12, x13, x1, y12, y13, y1, aire_triangle, ind_triangle, rang);
 
         /* Calcul des matrices Ã©lÃ©mentaires */
 
@@ -437,7 +478,7 @@ void Probleme::assemblage_felim(double* tab, double x12, double x13, double x1, 
     for(int j=0;j<3;j++)
     {
         int ind_global=maillage->Get_triangles_sommets()[3*ind_triangle+j];
-        if (PARALLELE && partition_noeud[ind_global]!=rang)
+        if (PARALLELE && partition_noeud[ind_global-1]!=rang)
         {
         }
         else
@@ -480,10 +521,7 @@ void Probleme::assemblage_pKelem(int ind_triangle, double* p_K_elem, int rang)
         for(int j=0;j<3;j++)
         {
             int ind_global_2=maillage->Get_triangles_sommets()[3*ind_triangle+j];
-            if (PARALLELE && partition_noeud[ind_global_1]!=rang && partition_noeud[ind_global_2]!=rang)
-            {
-            }
-            else
+            if (!PARALLELE || partition_noeud[ind_global_1-1]==rang)
             {
                 double AddedCoeff = p_K_elem[3*i+j];
                 p_K->coeffRef(ind_global_1-1,ind_global_2-1)+=AddedCoeff;
@@ -569,6 +607,10 @@ Probleme::~Probleme()
         p_K=_p_K;
     }
 
+    void Probleme::Set_p_M (Eigen::SparseMatrix<double>* _p_M) {
+        p_M=_p_M;
+    }
+
     void Probleme::Set_p_Kelim (Eigen::SparseMatrix<double>* _p_Kelim) {
         p_Kelim=_p_Kelim;
     }
@@ -613,6 +655,10 @@ Probleme::~Probleme()
 
     Eigen::SparseMatrix<double>* Probleme::Get_p_K (){
         return p_K;
+    }
+
+    Eigen::SparseMatrix<double>* Probleme::Get_p_M (){
+        return p_M;
     }
 
     Eigen::SparseMatrix<double>* Probleme::Get_p_Kelim () {

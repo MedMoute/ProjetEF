@@ -54,15 +54,16 @@ int main(int argc, char *argv[])
     //cout<<"affichage du vecteur solution récupéré depuis probleme :"<<endl;
     //affichVector(u);
     second_membre = *(mon_probleme.Get_felim());
+    //cout<<"afficahge du vecteur second membre local :"<<endl;
+    //affichVector(second_membre);
     Eigen::VectorXd second_membre_global(mon_maillage.Get_n_nodes());
     MPI_Allreduce(second_membre.data(),second_membre_global.data(),second_membre.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    //cout<<"afficahge du vecteur second membre récupéré depuis probleme :"<<endl;
-    //affichVector(second_membre);
+    cout<<"afficahge du vecteur second membre global :"<<endl;
+    affichVector(second_membre_global);
     mat_rigidite = *(mon_probleme.Get_p_K());
     //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
     //affich(mat_rigidite);
-    //cout<<"affichage de la matrice de rigidite finale obtenue dans probleme :"<<endl;   
-    //affich(diag);
+    
     d_mat_rigidite_local = Eigen::MatrixXd(mat_rigidite);
     Eigen::MatrixXd K_total(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
     MPI_Allreduce(d_mat_rigidite_local.data(),K_total.data(),d_mat_rigidite_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -70,11 +71,15 @@ int main(int argc, char *argv[])
     u_exact = *(mon_probleme.Get_uexa());
 
     diag_inv= *(mon_probleme.Get_diag());
+    //cout<<"diag_inv avant inversion"<<endl;
+    //affich(diag_inv);
     diag_inv_local = Eigen::MatrixXd(diag_inv);
     Eigen::MatrixXd diag_global(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
-    MPI_Allreduce(diag_inv_local.data(),diag_global.data(),diag_inv.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    MPI_Allreduce(diag_inv_local.data(),diag_global.data(),diag_inv_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
     K_total+=diag_global;
+    //cout<<"affichage de la matrice de rigidite K totale :"<<endl;   
+    //affich(K_total.sparseView());
 
     //Récupération de la diagonale globale pour ne pas avoir de 0 
     //Dans la diagonale, qui causent l'apparition de "inf" 
@@ -248,28 +253,18 @@ int main(int argc, char *argv[])
         }
     }
 
-    cout<<"voici le vecteur u obtenu sur le proc "<<rang<<endl;
-    affichVector(u);
+    //cout<<"voici le vecteur u obtenu sur le proc "<<rang<<endl;
+    //affichVector(u);
 
-    vector<double> sol_a_envoyer;
-    vector<double> sol_a_recevoir(mon_maillage.Get_n_nodes());
+    Eigen::VectorXd u_global(mon_maillage.Get_n_nodes());
+    MPI_Allreduce(u.data(),u_global.data(),u.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
-    for (unsigned int j=0;j<mon_maillage.Get_n_nodes();j++)
-    {
-       sol_a_envoyer.push_back(u.coeffRef(j,0));
-    }
-    MPI_Allreduce(&sol_a_envoyer[0],&sol_a_recevoir[0],mon_maillage.Get_n_nodes(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);   
-    for (int j=0;j<mon_maillage.Get_n_nodes();j++)
-    {
-       u.coeffRef(j,0)=sol_a_recevoir[j];
-    }
-
-    cout<<"voici le vecteur u après réduction sur tous les procs"<<endl;
-    affichVector(u);
-    cout<<"voici la solution exacte"<<endl;
-    affichVector(u_exact);
-    cout<<"voici K_total*u-second_membre_global qui doit etre nul si l'inversion du probleme lineaire a fonctionné"<<endl;
-    affichVector(K_total*u-second_membre_global);
+    //cout<<"voici le vecteur u après réduction sur tous les procs"<<endl;
+    //affichVector(u_global);
+    //cout<<"voici la solution exacte"<<endl;
+    //affichVector(u_exact);
+    cout<<"voici K_total*u_global-second_membre_global qui doit etre nul si l'inversion du probleme lineaire a fonctionné"<<endl;
+    affichVector(K_total*u_global-second_membre_global);
     
 
     double erreur_exa=0;
