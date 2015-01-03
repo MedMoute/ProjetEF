@@ -107,11 +107,11 @@ Maillage::Maillage(ifstream& fd) {
                         if (n_tags > 2) {
                             elems_ref[i] = tmp[3] ;
                             n_partition[i] = tmp[5] ;
-                            if (tmp[5]>nb_partitions)
-                            {
-                                nb_partitions=tmp[5];
-                            }
                             partition_ref[i] = tmp[6] ;
+                            if (tmp[6]>nb_partitions)
+                            {
+                                nb_partitions=tmp[6];
+                            }
                         }
 
                         for (int j=0;j<elems_type[2*i+1] ; j++) {
@@ -159,7 +159,6 @@ Maillage::Maillage(ifstream& fd) {
                     triangles_sommets = new int[3*n_triangles];
                     for (int k=0;k<n_triangles;k++)
                     {
-                        //std::cout<<"Triangle "<<k<<": ";
                         for (int l=0;l<3;l++)
                         {
 

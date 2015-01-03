@@ -1,6 +1,5 @@
 
 #include "../include/probleme.h"
-#include "../include/parallel.h"
 #include "../include/nonParallel.h"
 #include <stdio.h>
 #include <math.h>
@@ -32,7 +31,6 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     p_K = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
     p_M = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
-    //p_Kelim = new Eigen::SparseMatrix<double> (maillage->n_nodes,maillage->n_nodes);
 
     diag = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
 
@@ -42,131 +40,16 @@ Probleme::Probleme(Maillage monMaillage, int rang)
         partition_noeud[i]=-1;
     }
 
-    voisins_interface.resize(maillage->Get_nb_partitions());
-    voisins_partition.resize(maillage->Get_nb_partitions());
-
-    //cout<<"Task : "<<rang<< " voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
-
-    //cout <<"Task : "<<rang<< " Initialisation de tous les parametres de la classe" << endl;
-    //cout <<"Task : "<<rang<< " remplissage des vecteurs voisins_partition et voisins_interface"<< endl;
-
-
-    calcul_voisins();
-
-    //cout<<"affichage de voisins_interface"<<endl;
-    //affiche_vector(voisins_interface);
-
-    //cout<<"affichage de voisins_partition"<<endl;
-    //affiche_vector(voisins_partition);
-
-
-    /* Calcul de la solution exacte */
-
-    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
+    for (int i = 0; i < maillage->Get_nb_partitions(); i++) 
     {
-        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
-    }
-    //cout<<"affichage de la solution exacte dans probleme par le proc "<<rang<<endl;
-    //affichVector(*uexa);
-
-    //cout <<"Task : "<<rang<< " calcul de la solution exacte"<<endl;
-
-    /* Initialisation des conditions au bord, dans un premier temps a une constante*/
-
-    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
-    {
-        if (maillage->Get_nodes_ref()[ind_node]!=0)
-        {
-            double x=maillage->Get_nodes_coords()[3*ind_node+0];
-            double y=maillage->Get_nodes_coords()[3*ind_node+1];
-            double addedCoeff = calcul_g(x,y);
-            g->coeffRef(ind_node,0)+=addedCoeff;
-        }
-    }
-
-    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
-    {
-        if (partition_noeud[ind_node]==rang)
-        {
-            u->coeffRef(ind_node,0)+=partition_noeud[ind_node];
-            
-        }
-        else
-        {
-            u->coeffRef(ind_node,0)+=-1;
-        }
-    }
-
-    //cout<<"Task : "<<rang<< " calcul des conditions au bords"<<endl;
-
-    /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
-
-    assemblage(rang);
-    *felim = (*p_M)*(*felim); 
-
-
-    /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
-
-    Eigen::SparseMatrix<double> K_err = *p_K;
-
-    /* Le second membre total, prenant en compte les f et g de la formulation variationnelle
-     * felim a ete obtenu par formules de quadrature. Le second membre en g est obtenu par interpolation
-     */
-
-    //cout<<"felim avant pseudo eliminiation"<<endl;
-    //affichVector(*felim);
-
-    *felim=*felim-(*p_K) * (*g);
-
-    /* Mise en oeuvre de la pseudo elimination */
-    
-    for(int i=0;i<maillage->Get_n_nodes();i++)
-    {
-        if (maillage->Get_nodes_ref()[i]==1)
-        {
-            double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
-            felim->coeffRef(i,0)=nouvCoeff;
-            for(int j=0;j<maillage->Get_n_nodes();j++)
-            {
-                if (j!=i)
-                {
-                    p_K->coeffRef(i,j)=0;
-                    p_K->coeffRef(j,i)=0;
-                }
-            }
-        }
+        voisins_interface.push_back(vector<int>()); // Add an empty row
     }
     
-
-    //cout <<"Task : "<<rang<< " etape de pseudo elimination terminee."<<endl;
-    //affich(*p_K);
-
-    /* On sotcke la diagonale de la matrice de rigidité pour les itérations */
-
-    for (int i=0;i<maillage->Get_n_nodes();i++)
+    for (int i = 0; i < maillage->Get_nb_partitions(); i++) 
     {
-        diag->coeffRef(i,i)=p_K->coeffRef(i,i);
-    }
-    /* On retire cette diagonale de la matrice de rigidité car le produit matriciel au cours
-     * des itérations ne les fait pas intervenir ; une boucle pourrait etre évitée en utilisant
-     * les fonctions diagonal de eigen mais la version installee empeche d'ajouter des matrices creuses
-     * et des matrices denses
-     * */
-
-    for (int i=0;i<maillage->Get_n_nodes();i++)
-    {
-        p_K->coeffRef(i,i)=0;
+        voisins_partition.push_back(vector<int>()); // Add an empty row
     }
 
-    //cout<<"voici la matrice de rigidite sans diagonale, telle qu'elle intervient dans les calculs"<<endl;
-    //affich(*p_K);
-
-}
-
-
-
-void Probleme::calcul_voisins()
-{
     for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
         int ind_pt1=(maillage->Get_triangles_sommets())[3*ind_triangle]-1;
@@ -175,66 +58,43 @@ void Probleme::calcul_voisins()
 
         int numero_partition_triangle=maillage->Get_partition_ref()[maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle];
 
-        //cout<<"________________________________"<<endl;
-        //cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
-        //cout<<"c'est l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<endl;;
-
-
         /* Un noeud Ã  l'interface est reconnu par son appartenance Ã  deux partitions distinctes. */
-
-        //cout<<"le sommet "<<ind_pt1+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt1]<<endl;
 
         if (partition_noeud[ind_pt1]==-1)
         {
-            //cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
             partition_noeud[ind_pt1]=numero_partition_triangle;
         }
         else if(partition_noeud[ind_pt1]==numero_partition_triangle)
         {
-            //cout<<"il est deja sur la partition de son triangle"<<endl;
         }
         else
         {
-            //cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
             partition_noeud[ind_pt1]=0;
         }
 
-        //cout<<"le sommet "<<ind_pt2+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt2]<<endl;
-
         if (partition_noeud[ind_pt2]==-1)
         {
-            //cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
             partition_noeud[ind_pt2]=numero_partition_triangle;
         }
         else if(partition_noeud[ind_pt2]==numero_partition_triangle)
         {
-            //cout<<"il est deja sur la partition de son triangle"<<endl;
         }
         else
         {
-            //cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
             partition_noeud[ind_pt2]=0;
         }
 
-        //cout<<"le sommet "<<ind_pt3+1<<" est pour l'instant sur la partition "<<partition_noeud[ind_pt3]<<endl;
-
         if (partition_noeud[ind_pt3]==-1)
         {
-            //cout<<"il est non initialise donc sa partition est maintenant celle de son triangle"<<endl;
             partition_noeud[ind_pt3]=numero_partition_triangle;
         }
         else if(partition_noeud[ind_pt3]==numero_partition_triangle)
         {
-            //cout<<"il est deja sur la partition de son triangle"<<endl;
         }
         else
         {
-            //cout<<"il est initialise sur une partition differente du triangle parcouru"<<endl;
             partition_noeud[ind_pt3]=0;
         }
-
-        //cout<<"apres parcours de l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<" les noeuds "<<ind_pt1+1<<", "<<ind_pt2+1<<" et "<<ind_pt3+1<<endl
-        //<<" sont sur les partitions "<<partition_noeud[ind_pt1]<<", "<<partition_noeud[ind_pt2]<<" et "<<partition_noeud[ind_pt3]<<endl;
     }
 
     /* On sait maintenant quel noeud appartient Ã  quel triangle. En parcourant Ã  nouveau les triangles,
@@ -242,76 +102,47 @@ void Probleme::calcul_voisins()
      * donc dÃ©terminer les vecteurs voisins_interface et voisins_partition
      */
 
-    //cout<<"________________________________"<<endl;
-    //cout<<"PASSAGE AU REMPLISSAGE DES VOISINS"<<endl;
-    //cout<<"voisins_interface contient "<<voisins_interface.size()<<" lignes"<<endl;
-
-
     for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
     {
         int ind_pt1=maillage->Get_triangles_sommets()[3*ind_triangle]-1; 
         int ind_pt2=maillage->Get_triangles_sommets()[3*ind_triangle+1]-1;
         int ind_pt3=maillage->Get_triangles_sommets()[3*ind_triangle+2]-1;
 
-        //cout<<"on regarde le triangle de noeuds "<<ind_pt1+1<<" "<<ind_pt2+1<<" "<<ind_pt3+1<<endl;
-        //cout<<"c'est l element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<endl;;
-
         int numero_partition_triangle=maillage->Get_partition_ref()[maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle];
-        //cout<<"il est sur la partition "<<numero_partition_triangle<<endl;
 
         if ((partition_noeud[ind_pt1]==0 || partition_noeud[ind_pt2]==0 || partition_noeud[ind_pt3]==0) &&
                 (!(partition_noeud[ind_pt1]==0 && partition_noeud[ind_pt2]==0 && partition_noeud[ind_pt3]==0)))
         {
 
-            //cout<<"l'element "<<maillage->Get_n_elems()-maillage->Get_n_triangles()+ind_triangle+1<<" est au contact de l'interface"<<endl;
             if (partition_noeud[ind_pt2]!=0)
             {
                 /* Si le noeud n'est pas sur l'interface, il en est voisin */
                 voisins_interface[partition_noeud[ind_pt2]-1].push_back(ind_pt2+1);
-                //cout<<"le noeud "<<ind_pt2+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt2]<<endl;
-                //cout<<"vecteur voisins_interface"<<endl;
-                //affiche_vector(voisins_interface);
             }
             else
             {
                 /* Si le noeud est sur l'interface, il est voisin de la partition du triangle auquel il appartient */
                 voisins_partition[numero_partition_triangle-1].push_back(ind_pt2+1);
-                //cout<<"le noeud "<<ind_pt2+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
-                //cout<<"vecteur voisins_partition"<<endl;
-                //affiche_vector(voisins_partition);
             }
             if (partition_noeud[ind_pt3]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt3]-1].push_back(ind_pt3+1);
-                //cout<<"le noeud "<<ind_pt3+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt3]<<endl;
-                //cout<<"vecteur voisins_interface"<<endl;
-                //affiche_vector(voisins_interface);
             }
             else
             {
                 voisins_partition[numero_partition_triangle-1].push_back(ind_pt3+1);
-                //cout<<"le noeud "<<ind_pt3+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
-                //cout<<"vecteur voisins_partition"<<endl;
-                //affiche_vector(voisins_partition);
             }
             if (partition_noeud[ind_pt1]!=0)
             {
                 voisins_interface[partition_noeud[ind_pt1]-1].push_back(ind_pt1+1);
-                //cout<<"le noeud "<<ind_pt1+1<<" n'est pas sur l'interface et appartient a la partition "<<partition_noeud[ind_pt1]<<endl;
-                //cout<<"vecteur voisins_interface"<<endl;
-                //affiche_vector(voisins_interface);
             }
             else
             {
                 voisins_partition[numero_partition_triangle-1].push_back(ind_pt1+1);
-                //cout<<"le noeud "<<ind_pt1+1<<" est sur l'interface et appartient au triangle dont la partition est "<<numero_partition_triangle<<endl;
-                //cout<<"vecteur voisins_partition"<<endl;
-                //affiche_vector(voisins_partition);
             }
         }
         else
         {
-            //cout<<"Il n'est pas au contact de l'interface"<<endl;
         }
 
      }
@@ -343,11 +174,90 @@ void Probleme::calcul_voisins()
         (*vect_it).resize(std::distance((*vect_it).begin(),it));
     }
 
+    /* Calcul de la solution exacte */
+
+    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
+    {
+        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
+    }
+    
+    /* Initialisation des conditions au bord, dans un premier temps a une constante*/
+
+    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
+    {
+        if (maillage->Get_nodes_ref()[ind_node]!=0)
+        {
+            double x=maillage->Get_nodes_coords()[3*ind_node+0];
+            double y=maillage->Get_nodes_coords()[3*ind_node+1];
+            double addedCoeff = calcul_g(x,y);
+            g->coeffRef(ind_node,0)+=addedCoeff;
+        }
+    }
+
+    for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
+    {
+        if (partition_noeud[ind_node]==rang)
+        {
+            u->coeffRef(ind_node,0)+=partition_noeud[ind_node];
+            
+        }
+        else
+        {
+            u->coeffRef(ind_node,0)+=-1;
+        }
+    }
+
+    /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
+
+    assemblage(rang);
+    *felim = (*p_M)*(*felim); 
 
 
-    //cout<<"voici le vecteur voisins_partition, contenant sur la i-eme ligne la liste ordonnée des noeuds de l'interface voisins de la partition i"<<endl;
-    //affiche_vector(voisins_partition);
+    /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
 
+    Eigen::SparseMatrix<double> K_err = *p_K;
+
+    /* Le second membre total, prenant en compte les f et g de la formulation variationnelle
+     * felim a ete obtenu par formules de quadrature. Le second membre en g est obtenu par interpolation
+     */
+
+    *felim=*felim-(*p_K) * (*g);
+
+    /* Mise en oeuvre de la pseudo elimination */
+    
+    for(int i=0;i<maillage->Get_n_nodes();i++)
+    {
+        if (maillage->Get_nodes_ref()[i]==1)
+        {
+            double nouvCoeff = p_K->coeffRef(i,i)*g->coeffRef(i,0);
+            felim->coeffRef(i,0)=nouvCoeff;
+            for(int j=0;j<maillage->Get_n_nodes();j++)
+            {
+                if (j!=i)
+                {
+                    p_K->coeffRef(i,j)=0;
+                    p_K->coeffRef(j,i)=0;
+                }
+            }
+        }
+    }
+
+    /* On sotcke la diagonale de la matrice de rigidité pour les itérations */
+
+    for (int i=0;i<maillage->Get_n_nodes();i++)
+    {
+        diag->coeffRef(i,i)=p_K->coeffRef(i,i);
+    }
+    /* On retire cette diagonale de la matrice de rigidité car le produit matriciel au cours
+     * des itérations ne les fait pas intervenir ; une boucle pourrait etre évitée en utilisant
+     * les fonctions diagonal de eigen mais la version installee empeche d'ajouter des matrices creuses
+     * et des matrices denses
+     * */
+
+    for (int i=0;i<maillage->Get_n_nodes();i++)
+    {
+        p_K->coeffRef(i,i)=0;
+    }
 }
 
 
@@ -561,8 +471,6 @@ Probleme::~Probleme()
     felim=0;
     delete p_K;
     p_K=0;
-    //delete p_Kelim;
-    //p_Kelim=0;
     delete u;
     u=0;
 }
