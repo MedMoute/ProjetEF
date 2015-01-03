@@ -5,7 +5,6 @@
 #include "../include/maillage.h"
 #include "../include/probleme.h"
 #include "../include/nonParallel.h"
-#include "../include/param.h"
 
 int main(int argc, char *argv[])
 {
@@ -77,6 +76,9 @@ int main(int argc, char *argv[])
         }
     }
 
+    vector<vector<int> > voisins_partition = mon_probleme.Get_voisins_partition();
+    vector<vector<int> > voisins_interface = mon_probleme.Get_voisins_interface();
+
     /* Schema iteratif en temps */
     it = 0;
     convergence = false;
@@ -84,61 +86,62 @@ int main(int argc, char *argv[])
     /* Mesure du temps en seconde dans la boucle en temps */
     t1 = MPI_Wtime();
 
-    vector<vector<int> > voisins_partition = mon_probleme.Get_voisins_partition();
-    vector<vector<int> > voisins_interface = mon_probleme.Get_voisins_interface();
-
-    while ( !(convergence) && (it < 1000) )
+    while ( !(convergence) && (it < it_max) )
     {   
         it = it+1;
         u_avant_com = u;
 
         /* Echange des points aux interfaces pour u a l'iteration n */
-        vector<double> valeurs_a_envoyer;
-        if (rang!=0)
+        if (PARALLELE)
         {
-            int taille = voisins_interface[rang-1].size();
-            for (unsigned int i=0;i<taille;i++)
+            vector<double> valeurs_a_envoyer;
+            if (rang!=0)
             {
-               valeurs_a_envoyer.push_back(u.coeffRef(voisins_interface[rang-1][i]-1,0));
+                int taille = voisins_interface[rang-1].size();
+                for (unsigned int i=0;i<taille;i++)
+                {
+                   valeurs_a_envoyer.push_back(u.coeffRef(voisins_interface[rang-1][i]-1,0));
+                }
+                MPI_Send(&valeurs_a_envoyer[0],taille,MPI_DOUBLE,0,0,MPI_COMM_WORLD);
             }
-            MPI_Send(&valeurs_a_envoyer[0],taille,MPI_DOUBLE,0,0,MPI_COMM_WORLD);
-        }
-        else
-        {
-            for (int num_proc=1;num_proc<nb_procs;num_proc++)
+            else
             {
-                int taille = voisins_interface[num_proc-1].size();
+                for (int num_proc=1;num_proc<nb_procs;num_proc++)
+                {
+                    int taille = voisins_interface[num_proc-1].size();
+                    vector<double> temp(taille);
+                    MPI_Recv(&temp[0],taille,MPI_DOUBLE,num_proc,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                    for (int ind=0;ind<taille;ind++)
+                    {
+                        u.coeffRef(voisins_interface[num_proc-1][ind]-1,0)=temp[ind];
+                    }
+                }
+            }
+
+            if (rang==0)
+            {
+                for (int num_proc=1;num_proc<nb_procs;num_proc++)
+                {
+                    int taille = voisins_partition[num_proc-1].size();
+                    for(int i=0;i<taille;i++)
+                    {
+                        valeurs_a_envoyer.push_back(u.coeffRef(voisins_partition[num_proc-1][i]-1,0));
+                    }
+                    MPI_Send(&valeurs_a_envoyer[0],taille,MPI_DOUBLE,num_proc,0,MPI_COMM_WORLD);
+                }
+            }
+            else
+            {
+                int taille = voisins_partition[rang-1].size();
                 vector<double> temp(taille);
-                MPI_Recv(&temp[0],taille,MPI_DOUBLE,num_proc,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                MPI_Recv(&temp[0],taille,MPI_DOUBLE,0,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
                 for (int ind=0;ind<taille;ind++)
                 {
-                    u.coeffRef(voisins_interface[num_proc-1][ind]-1,0)=temp[ind];
+                    u.coeffRef(voisins_partition[rang-1][ind]-1,0)=temp[ind];
                 }
             }
         }
-
-        if (rang==0)
-        {
-            for (int num_proc=1;num_proc<nb_procs;num_proc++)
-            {
-                int taille = voisins_partition[num_proc-1].size();
-                for(int i=0;i<taille;i++)
-                {
-                    valeurs_a_envoyer.push_back(u.coeffRef(voisins_partition[num_proc-1][i]-1,0));
-                }
-                MPI_Send(&valeurs_a_envoyer[0],taille,MPI_DOUBLE,num_proc,0,MPI_COMM_WORLD);
-            }
-        }
-        else
-        {
-            int taille = voisins_partition[rang-1].size();
-            vector<double> temp(taille);
-            MPI_Recv(&temp[0],taille,MPI_DOUBLE,0,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-            for (int ind=0;ind<taille;ind++)
-            {
-                u.coeffRef(voisins_partition[rang-1][ind]-1,0)=temp[ind];
-            }
-        }
+        
 
         /* Calcul de u a l'iteration n+1 */
         u_nouveau = diag_inv * ((-mat_rigidite) * u + second_membre);
@@ -156,7 +159,14 @@ int main(int argc, char *argv[])
         }
 
         /* Calcul de l'erreur sur tous les sous-domaines */
-        MPI_Allreduce( &erreur_locale, &diffnorm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        if (PARALLELE)
+        {
+            MPI_Allreduce( &erreur_locale, &diffnorm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        }
+        else
+        {
+            diffnorm = erreur_locale;
+        }
 
         u = u_nouveau ;
 
@@ -171,20 +181,29 @@ int main(int argc, char *argv[])
     }
 
     Eigen::VectorXd u_global(mon_maillage.Get_n_nodes());
-    MPI_Allreduce(u.data(),u_global.data(),u.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
+    if (PARALLELE)
+    {
+        MPI_Allreduce(u.data(),u_global.data(),u.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    }
+    else
+    {
+        u_global = u;
+    }
+
+    /* Mesure du temps a la sortie de la boucle */
+    t2 = MPI_Wtime();
+    
     /* Calcul de l'erreur par rapport à la solution exacte */
     double erreur_exa=0;
     for (int iter=0;iter<u.size();iter++)
     {
-        double temp = fabs( u.coeffRef(iter,0) - u_exact.coeffRef(iter,0) );
+        double temp = fabs( u_global.coeffRef(iter,0) - u_exact.coeffRef(iter,0) );
         if (erreur_exa < temp) 
         {
             erreur_exa = temp;
         }
     }
-    /* Mesure du temps a la sortie de la boucle */
-    t2 = MPI_Wtime();
 
     if (rang ==  0) 
     {
