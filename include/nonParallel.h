@@ -9,5 +9,6 @@
 void affich(Eigen::SparseMatrix<double>);
 void affichVector(VectorXd);
 void affiche_vector(vector<vector<int> >);
+void output_vector(VectorXd, string);
 
 #endif // NONPARALLEL_H

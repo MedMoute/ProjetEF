@@ -222,6 +222,9 @@ int main(int argc, char *argv[])
     {
         cout<<"voici K_total*u_global-second_membre_global qui doit etre nul si l'inversion du probleme lineaire a fonctionné"<<endl;
         affichVector(K_total*u_global-second_membre_global);
+
+        output_vector(u_global,"u_global");
+        output_vector(u_exact,"u_exact");
     
         /* Affichage du temps de convergence par le processus 0 */
         cout<<"Convergence apres "<<it<<" iterations en "<< t2-t1<<" secs"<<endl;

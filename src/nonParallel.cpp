@@ -1,5 +1,5 @@
 #include <fstream>
-#include <iostream>
+#include <iostream> 
 #include "../include/nonParallel.h"
 
 
@@ -52,4 +52,18 @@ void affiche_vector(vector<vector<int> > v)
         }
         std::cout<<std::endl;
     }
+}
+
+
+void output_vector(VectorXd u,string s)
+{
+    ofstream OuputFile;
+    OuputFile.open (s.c_str());
+
+    for(int i=0;i<u.rows();i++)
+    {
+    OuputFile << u(i,0);
+    OuputFile << "\n";
+    }
+    OuputFile.close();
 }
