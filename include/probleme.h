@@ -7,8 +7,8 @@
 #include <vector>
 #include <algorithm>
 #define PARALLELE 0
-#define it_max 1000
-#define eps 2.e-16
+#define it_max 10000
+#define eps 2.e-5
 #define PI 3.14159
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd ;
@@ -46,8 +46,7 @@ public :
     // constructeur a partir d'un maillage
     Probleme(Maillage , int);
     void assemblage(int);
-    void assemblage_felim(double* , double , double , double , double , double , double , double
-                                    , int , int );
+    
     void mat_K_elem(double* , double* , double );
     void assemblage_pKelem(int , double* , int );
 

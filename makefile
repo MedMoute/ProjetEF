@@ -29,6 +29,6 @@ main: $(OBJ)
 
 
 clean:
-	@find -name '*~' -exec rm {} \;
-	@find -name '*.o' -exec rm {} \;
+	@find ./ -name '*~' -exec rm {} \;
+	@find ./ -name '*.o' -exec rm {} \;
 

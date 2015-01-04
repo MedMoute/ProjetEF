@@ -348,10 +348,6 @@ void Probleme::assemblage(int rang)
         delete p_M_elem;
         p_M_elem=0;
 
-        /* Assemblage de felim */
-
-        //assemblage_felim(tab, x12, x13, x1, y12, y13, y1, aire_triangle, ind_triangle, rang);
-
         /* Calcul des matrices Ã©lÃ©mentaires */
 
         /* Creation de la matrice elementaire pour le triangle de la boucle */
@@ -369,36 +365,6 @@ void Probleme::assemblage(int rang)
 
         delete p_K_elem;
         p_K_elem=0;
-    }
-}
-
-void Probleme::assemblage_felim(double* tab, double x12, double x13, double x1, double y12, double y13, double y1, double
-                                aire_triangle, int ind_triangle, int rang)
-{
-    double integ_interpolee=0;
-    for(int j=0;j<3;j++)
-    {
-        int ind_global=maillage->Get_triangles_sommets()[3*ind_triangle+j];
-        if (PARALLELE && partition_noeud[ind_global-1]!=rang)
-        {
-        }
-        else
-        {
-            for (int i=0;i<7;i++)
-            {
-                /* L'integrale sur le triangle de la boucle se ramene au triangle de base par chgmt de var.
-                 * (s1,s2) est le nouveau point ou l'on calcule f apres changement de var */
-
-                double s1=x12*tab[3*i+1]+x13*tab[3*i+2]+x1;
-                double s2=y12*tab[3*i+1]+y13*tab[3*i+2]+y1;
-                /* base_loc(j,x,y) calcule la valeur de la fonction barycentrique lambda_j en (x,y) */
-                double term_som=tab[3*i]*base_loc(j,tab[3*i+1],tab[3*i+2])*calcul_f(s1,s2);
-                integ_interpolee+=term_som;
-            }
-            double addedCoeff = 2*aire_triangle*integ_interpolee;
-            /* Assemblage de felim */
-            felim->coeffRef(ind_global-1,0)+=addedCoeff;
-        }
     }
 }
 
