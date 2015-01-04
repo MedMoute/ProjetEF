@@ -6,14 +6,10 @@
 #include <Eigen/SparseCholesky>
 #include <vector>
 #include <algorithm>
-#define PARALLELE false
+#define PARALLELE 1
 #define it_max 1000
-#define faux 0
 #define eps 2.e-16
-#define true 1
 #define PI 3.14159
-
-extern int rang;
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VectorXd ;
 

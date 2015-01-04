@@ -9,7 +9,7 @@ endif
 EXEC=main
 CXX=mpicxx
 LDFLAGS= 
-SRC=src/parallel.cpp src/nonParallel.cpp src/probleme.cpp src/maillage.cpp src/main.cpp
+SRC=src/nonParallel.cpp src/probleme.cpp src/maillage.cpp src/main.cpp
 OBJ=$(SRC:.cpp=.o)
 
 all: ${EXEC}

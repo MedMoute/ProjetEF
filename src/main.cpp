@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 
 
     Eigen::DiagonalMatrix<double, Eigen::Dynamic> diagonale;
-    extern int rang;
-    extern int nb_procs;
+    int rang;
+    int nb_procs;
 
     /* Initialisation de MPI */
     MPI_Init( &argc, &argv);
@@ -44,22 +44,30 @@ int main(int argc, char *argv[])
     Probleme mon_probleme(mon_maillage, rang);
 
     u = *(mon_probleme.Get_u());
-    
-    second_membre = *(mon_probleme.Get_felim());
-    Eigen::VectorXd second_membre_global(mon_maillage.Get_n_nodes());
-    MPI_Allreduce(second_membre.data(),second_membre_global.data(),second_membre.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-
     mat_rigidite = *(mon_probleme.Get_p_K());
-    d_mat_rigidite_local = Eigen::MatrixXd(mat_rigidite);
-    Eigen::MatrixXd K_total(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
-    MPI_Allreduce(d_mat_rigidite_local.data(),K_total.data(),d_mat_rigidite_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-
+    second_membre = *(mon_probleme.Get_felim());
     u_exact = *(mon_probleme.Get_uexa());
-
     diag_inv= *(mon_probleme.Get_diag());
-    diag_inv_local = Eigen::MatrixXd(diag_inv);
+
+    Eigen::VectorXd second_membre_global(mon_maillage.Get_n_nodes());
+    Eigen::MatrixXd K_total(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
     Eigen::MatrixXd diag_global(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
-    MPI_Allreduce(diag_inv_local.data(),diag_global.data(),diag_inv_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
+
+    if (PARALLELE)
+      {
+      MPI_Allreduce(second_membre.data(),second_membre_global.data(),second_membre.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      d_mat_rigidite_local = Eigen::MatrixXd(mat_rigidite);
+      MPI_Allreduce(d_mat_rigidite_local.data(),K_total.data(),d_mat_rigidite_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      diag_inv_local = Eigen::MatrixXd(diag_inv);
+      MPI_Allreduce(diag_inv_local.data(),diag_global.data(),diag_inv_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      }
+    else
+      {
+        second_membre_global = second_membre;
+        K_total = mat_rigidite;
+        diag_global = diag_inv;
+      }
 
     K_total+=diag_global;
 
