@@ -6,7 +6,7 @@
 #include <Eigen/SparseCholesky>
 #include <vector>
 #include <algorithm>
-#define PARALLELE 1
+#define PARALLELE 0
 #define it_max 1000
 #define eps 2.e-16
 #define PI 3.14159

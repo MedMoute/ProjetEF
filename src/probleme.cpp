@@ -18,14 +18,14 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     u = new VectorXd;
     u->resize(maillage->Get_n_nodes(),1);
 
-    felim = new VectorXd;
-    felim->resize(maillage->Get_n_nodes(),1);
+    felim = new VectorXd(maillage->Get_n_nodes());
+    
     for (int i=0;i<maillage->Get_n_nodes();i++)
     {
         double x=maillage->Get_nodes_coords()[3*i+0];
         double y=maillage->Get_nodes_coords()[3*i+1];
         double addedCoeff = calcul_f(x,y);
-        felim->coeffRef(i,0)+=addedCoeff;
+        felim->coeffRef(i,0)=addedCoeff;
     }
 
     p_K = new Eigen::SparseMatrix<double> (maillage->Get_n_nodes(),maillage->Get_n_nodes());
@@ -177,7 +177,7 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
     {
-        uexa->coeffRef(ind_node,0)+=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
+        uexa->coeffRef(ind_node,0)=calcul_uexa(maillage->Get_nodes_coords()[3*ind_node],maillage->Get_nodes_coords()[3*ind_node+1]);
     }
     
     /* Initialisation des conditions au bord, dans un premier temps a une constante*/
@@ -189,21 +189,13 @@ Probleme::Probleme(Maillage monMaillage, int rang)
             double x=maillage->Get_nodes_coords()[3*ind_node+0];
             double y=maillage->Get_nodes_coords()[3*ind_node+1];
             double addedCoeff = calcul_g(x,y);
-            g->coeffRef(ind_node,0)+=addedCoeff;
+            g->coeffRef(ind_node,0)=addedCoeff;
         }
     }
 
     for(int ind_node=0;ind_node<maillage->Get_n_nodes();ind_node++)
     {
-        if (partition_noeud[ind_node]==rang)
-        {
-            u->coeffRef(ind_node,0)+=partition_noeud[ind_node];
-            
-        }
-        else
-        {
-            u->coeffRef(ind_node,0)+=-1;
-        }
+        u->coeffRef(ind_node,0)=1;
     }
 
     /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
@@ -472,6 +464,12 @@ Probleme::~Probleme()
     p_K=0;
     delete u;
     u=0;
+    delete p_M;
+    p_M=0;
+    delete diag;
+    diag=0;
+    delete partition_noeud;
+    partition_noeud=0;
 }
 
 

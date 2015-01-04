@@ -56,6 +56,7 @@ int main(int argc, char *argv[])
 
     if (PARALLELE)
       {
+        std::cout<<" on est bien en parallele"<<std::endl;
       MPI_Allreduce(second_membre.data(),second_membre_global.data(),second_membre.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       d_mat_rigidite_local = Eigen::MatrixXd(mat_rigidite);
       MPI_Allreduce(d_mat_rigidite_local.data(),K_total.data(),d_mat_rigidite_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -74,7 +75,7 @@ int main(int argc, char *argv[])
     //Inversion de diag en dehors de la boucle de calcul
     for(int i=0;i<mon_maillage.Get_n_nodes();i++)
     {
-        if ((mon_probleme.Get_partition_noeud())[i]==rang)
+        if (!PARALLELE || (mon_probleme.Get_partition_noeud())[i]==rang)
         {
             diag_inv.coeffRef(i,i)=1/diag_inv.coeffRef(i,i);
         }
@@ -84,8 +85,13 @@ int main(int argc, char *argv[])
         }
     }
 
+    
+
+    
+
     vector<vector<int> > voisins_partition = mon_probleme.Get_voisins_partition();
     vector<vector<int> > voisins_interface = mon_probleme.Get_voisins_interface();
+
 
     /* Schema iteratif en temps */
     it = 0;
@@ -149,7 +155,6 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        
 
         /* Calcul de u a l'iteration n+1 */
         u_nouveau = diag_inv * ((-mat_rigidite) * u + second_membre);
