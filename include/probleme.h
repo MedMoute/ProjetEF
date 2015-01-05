@@ -150,13 +150,40 @@ public :
     Eigen::SparseMatrix<double>* Get_diag ();
  #endif /* DOXYGEN_SHOULD_SKIP_THIS */
     //Destructeur
+
+ /*! \brief Destructeur de la classe maillage
+  *
+  */
     ~Probleme();
 
-    void pelim(int) ;
-
-    double base_loc(int, double, double);
+     /*! \brief Calcule le second membre du problème pour un point donné
+     *
+  *
+  *Calcule la solution exacte pour un couple x,y de coordonées passé en argument
+  *
+  *\param coor_1 Abscisse du point dont on calcule la valeur exacte de la solution
+  *\param coor_2 Ordonée du point dont on calcule la valeur exacte de la solution
+  */
     double calcul_f(double, double);
+
+     /*! \brief Calcule la solution exacte du problème pour un point donné
+     *
+  *
+  *Calcule la solution exacte pour un couple x,y de coordonées passé en argument
+  *
+  *\param coor_1 Abscisse du point dont on calcule la valeur du second membre
+  *\param coor_2 Ordonée du point dont on calcule la valeur du second membre
+  */
     double calcul_uexa(double, double);
+
+         /*! \brief Calcule la valeur du relèvenement pour un point donné
+     *
+  *
+  *Calcule la solution exacte pour un couple x,y de coordonées passé en argument
+  *
+  *\param coor_1 Abscisse du point dont on calcule la valeur du relevement
+  *\param coor_2 Ordonée du point dont on calcule la valeur du relevement
+  */
     double calcul_g(double, double);
 
 

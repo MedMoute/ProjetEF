@@ -297,8 +297,8 @@ int main(int argc, char *argv[])
  * \subsection sources_sec Sources et fichiers
  *  - C++ source files
  *      -# main.cpp
- *      -# maillage.cpp
- *      -# probleme.cpp
+ *      -# maillage.cpp : classe Maillage
+ *      -# probleme.cpp : classe Probleme
  *      -# nonParallel.cpp
  *
  *  - C++ header files

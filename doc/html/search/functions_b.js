@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['view',['view',['../_viewing_8m.html#afbf3fe4d745aac8176fa8fa3a6173c06',1,'Viewing.m']]]
+  ['xlabel',['xlabel',['../_viewing_8m.html#a7b8c25def30d842e110fd329991ae043',1,'Viewing.m']]]
 ];

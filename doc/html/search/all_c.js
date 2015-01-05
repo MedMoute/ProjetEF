@@ -1,15 +1,10 @@
 var searchData=
 [
-  ['p_5fk',['p_K',['../class_probleme.html#a82a99cd0fee1c4dba350a4dd0f849ef5',1,'Probleme']]],
-  ['p_5fkelim',['p_Kelim',['../class_probleme.html#ade37bbdb593c92e6c40611b988bd9ed6',1,'Probleme']]],
-  ['p_5fm',['p_M',['../class_probleme.html#a34911ba6f7cf5638b54cc3799f9eb20b',1,'Probleme']]],
-  ['parallele',['PARALLELE',['../probleme_8h.html#a1a084ebd1e5c5b29aeab8c41d0ab2b0a',1,'probleme.h']]],
-  ['partition_5fnoeud',['partition_noeud',['../class_probleme.html#a20f3b6797239ff130c28060c2e65ed20',1,'Probleme']]],
-  ['partition_5fref',['partition_ref',['../class_maillage.html#a871a2a76e72a8642d6ce1abf3bf6cdbf',1,'Maillage']]],
-  ['pelim',['pelim',['../class_probleme.html#a574c5ce4cbd95b5298fdaef9703cdfb0',1,'Probleme']]],
-  ['pi',['PI',['../probleme_8h.html#a598a3330b3c21701223ee0ca14316eca',1,'probleme.h']]],
-  ['plot',['plot',['../_viewing_8m.html#abac3961b663c297c26d4dde42f96daec',1,'Viewing.m']]],
-  ['probleme',['Probleme',['../class_probleme.html',1,'Probleme'],['../class_probleme.html#aceb5183fcc4a0a776ef010346c6e6522',1,'Probleme::Probleme()']]],
-  ['probleme_2ecpp',['probleme.cpp',['../probleme_8cpp.html',1,'']]],
-  ['probleme_2eh',['probleme.h',['../probleme_8h.html',1,'']]]
+  ['s',['s',['../_viewing_8m.html#a3691308f2a4c2f6983f2880d32e29c84',1,'s():&#160;Viewing.m'],['../_viewing_8m.html#a857b4ade87ea3995d3aab8c0596be762',1,'S():&#160;Viewing.m']]],
+  ['scatter3',['scatter3',['../_viewing_8m.html#ac29b7be2c8210b9ded0c62953c609adc',1,'scatter3(X, Y, Uex,&apos;.&apos;,&apos;cdata&apos;, cdata_uex):&#160;Viewing.m'],['../_viewing_8m.html#a9c1ad278a67c11ebfd242539831843c2',1,'scatter3(X, Y, Uglo,&apos;.&apos;,&apos;cdata&apos;, cdata_uglo):&#160;Viewing.m'],['../_viewing_8m.html#afc08c3c7756a6a21c735e615acc9c6ee',1,'scatter3(X, Y, Errloc,&apos;o&apos;,&apos;filled&apos;,&apos;cdata&apos;, cdata_err):&#160;Viewing.m']]],
+  ['set_5fmaillage',['Set_maillage',['../class_probleme.html#a293bc3f123cd2135d6d399ea0c39a566',1,'Probleme']]],
+  ['set_5fn_5fnodes',['Set_n_nodes',['../class_maillage.html#a22df698713affb20d89065d83badcc16',1,'Maillage']]],
+  ['std',['std',['../namespacestd.html',1,'']]],
+  ['submit_5fgin_2eqsub',['submit_gin.qsub',['../submit__gin_8qsub.html',1,'']]],
+  ['subplot',['subplot',['../_viewing_8m.html#aab12de0a32a5e49fd31c109964c48ba5',1,'subplot(2, 2, 1):&#160;Viewing.m'],['../_viewing_8m.html#a4a36d015fe922004e9aa9e5e146b7b29',1,'subplot(2, 2, 2):&#160;Viewing.m'],['../_viewing_8m.html#a2d521d932acd3847f3b027f24f3a8fab',1,'subplot(2, 2,[3 4]):&#160;Viewing.m']]]
 ];

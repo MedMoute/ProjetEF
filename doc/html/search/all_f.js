@@ -1,10 +1,8 @@
 var searchData=
 [
-  ['u',['u',['../class_probleme.html#ae7113d0d5a3674e1741a5a8f1f908220',1,'Probleme']]],
-  ['u_5fexact',['u_exact',['../u__exact.html',1,'']]],
-  ['u_5fglobal',['u_global',['../u__global.html',1,'']]],
-  ['uex',['Uex',['../_viewing_8m.html#a1af916bb51fc2897ef4c5fca68d20577',1,'Viewing.m']]],
-  ['uexa',['uexa',['../class_probleme.html#a7632fdbd87f24650697df715016a53ac',1,'Probleme']]],
-  ['uglo',['Uglo',['../_viewing_8m.html#a885497824d611b4e1311085df2abb92a',1,'Viewing.m']]],
-  ['usage',['Usage',['../load__gmsh4_8m.html#a416623d8c81826e4767796c4516dbbc6',1,'load_gmsh4.m']]]
+  ['vectorxd',['VectorXd',['../probleme_8h.html#a4379f791668b5a0159f3507e8405a7a1',1,'probleme.h']]],
+  ['view',['view',['../_viewing_8m.html#afbf3fe4d745aac8176fa8fa3a6173c06',1,'Viewing.m']]],
+  ['viewing_2em',['Viewing.m',['../_viewing_8m.html',1,'']]],
+  ['voisins_5finterface',['voisins_interface',['../class_probleme.html#ace0e41b06b86c5f5f1187b67580d9341',1,'Probleme']]],
+  ['voisins_5fpartition',['voisins_partition',['../class_probleme.html#ae529c05ce7f65459b511f4a246b74364',1,'Probleme']]]
 ];

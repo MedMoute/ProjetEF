@@ -408,11 +408,6 @@ void Probleme::assemblage_pKelem(int ind_triangle, double* p_K_elem, int rang)
 }
 
 
-double Probleme::base_loc(int j, double coor_1, double coor_2)
-{
-    return((j==0)*(1-coor_1-coor_2)+(j==1)*(coor_1)+(j==2)*(coor_2));
-}
-
 double Probleme::calcul_f(double coor_1, double coor_2)
 {
     return(2*pow(PI,2)*sin(PI*coor_1)*sin(PI*coor_2));

@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['get_5fmaillage',['Get_maillage',['../class_probleme.html#a622e1e21e1c386751acd1f53ae309a74',1,'Probleme']]],
-  ['get_5fn_5fnodes',['Get_n_nodes',['../class_maillage.html#abd21e777e22a695e666786971dae036b',1,'Maillage']]]
+  ['maillage',['Maillage',['../class_maillage.html#a47a38bb00973af760266574bff3bc87d',1,'Maillage']]],
+  ['main',['main',['../main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main.cpp']]],
+  ['mat_5fk_5felem',['mat_K_elem',['../class_probleme.html#a75a82ca6f1f94d425b9cd6eda7809ec8',1,'Probleme']]]
 ];

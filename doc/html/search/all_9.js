@@ -1,11 +1,14 @@
 var searchData=
 [
-  ['maillage',['Maillage',['../class_maillage.html',1,'Maillage'],['../class_probleme.html#a42891deeac3940ef83bc05c198f9eea3',1,'Probleme::maillage()'],['../class_maillage.html#a47a38bb00973af760266574bff3bc87d',1,'Maillage::Maillage()']]],
-  ['maillage_2ecpp',['maillage.cpp',['../maillage_8cpp.html',1,'']]],
-  ['maillage_2eh',['maillage.h',['../maillage_8h.html',1,'']]],
-  ['main',['main',['../main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97',1,'main.cpp']]],
-  ['main_2ecpp',['main.cpp',['../main_8cpp.html',1,'']]],
-  ['makefile',['makefile',['../makefile.html',1,'']]],
-  ['mat_5fk_5felem',['mat_K_elem',['../class_probleme.html#a75a82ca6f1f94d425b9cd6eda7809ec8',1,'Probleme']]],
-  ['msh',['msh',['../load__gmsh4_8m.html#a671c895e7fffb8a3f77dc7e2957cfce4',1,'msh():&#160;load_gmsh4.m'],['../_viewing_8m.html#aac2262519a744d1f737604d33ac0c99a',1,'msh():&#160;Viewing.m']]]
+  ['n_5felems',['n_elems',['../class_maillage.html#a5fa4896a8748ba70102993c2d35b2a1a',1,'Maillage']]],
+  ['n_5fnodes',['n_nodes',['../class_maillage.html#a003a02fe29915bfc4890a0b6e2d344b7',1,'Maillage']]],
+  ['n_5fpartition',['n_partition',['../class_maillage.html#a5747705bc36b59bfc4441de30b471b9c',1,'Maillage']]],
+  ['n_5ftriangles',['n_triangles',['../class_maillage.html#a065c047db856015332edcab2f7a799dd',1,'Maillage']]],
+  ['nb_5fpartitions',['nb_partitions',['../class_maillage.html#a0a507afc0795266c508cf892202e4fbd',1,'Maillage']]],
+  ['nnod',['nnod',['../_viewing_8m.html#ae3299fa73399aba8660bbc4090570205',1,'Viewing.m']]],
+  ['nodes_5fcoords',['nodes_coords',['../class_maillage.html#ae4bda6e9e779e0e294de97ee9366db53',1,'Maillage']]],
+  ['nodes_5fref',['nodes_ref',['../class_maillage.html#a3eeb3a2b15aec50b453a9887053d5ff7',1,'Maillage']]],
+  ['nonparallel_2ecpp',['nonParallel.cpp',['../non_parallel_8cpp.html',1,'']]],
+  ['nonparallel_2eh',['nonParallel.h',['../non_parallel_8h.html',1,'']]],
+  ['nrelm',['nrelm',['../_viewing_8m.html#a27755e790dde00b13387105ab9d27c5e',1,'Viewing.m']]]
 ];
