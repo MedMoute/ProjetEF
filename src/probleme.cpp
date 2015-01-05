@@ -216,12 +216,6 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
 
-    Eigen::SparseMatrix<double> K_err = *p_K;
-
-    /* Le second membre total, prenant en compte les f et g de la formulation variationnelle
-     * felim a ete obtenu par formules de quadrature. Le second membre en g est obtenu par interpolation
-     */
-
     *felim=*felim-(*p_K) * (*g);
 
     /* Mise en oeuvre de la pseudo elimination */
