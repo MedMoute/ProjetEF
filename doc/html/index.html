@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.9.1"/>
+<title>Projet de module A1-1: Accueil</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() { init_search(); });
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectlogo"><img alt="Logo" src="logo_ensta (1).jpg"/></td>
+  <td style="padding-left: 0.5em;">
+   <div id="projectname">Projet de module A1-1
+   &#160;<span id="projectnumber">1.0</span>
+   </div>
+   <div id="projectbrief">Solveur multiprocesseur par la méthode de Jacobi</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Généré par Doxygen 1.8.9.1 -->
+<script type="text/javascript">
+var searchBox = new SearchBox("searchBox", "search",false,'Recherche');
+</script>
+  <div id="navrow1" class="tabs">
+    <ul class="tablist">
+      <li class="current"><a href="index.html"><span>Page&#160;principale</span></a></li>
+      <li><a href="namespaces.html"><span>Espaces&#160;de&#160;nommage</span></a></li>
+      <li><a href="annotated.html"><span>Classes</span></a></li>
+      <li><a href="files.html"><span>Fichiers</span></a></li>
+      <li>
+        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <img id="MSearchSelect" src="search/mag_sel.png"
+               onmouseover="return searchBox.OnSearchSelectShow()"
+               onmouseout="return searchBox.OnSearchSelectHide()"
+               alt=""/>
+          <input type="text" id="MSearchField" value="Recherche" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.png" alt=""/></a>
+          </span>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div><!-- top -->
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">Accueil </div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><h1><a class="anchor" id="intro_sec"></a>
+Introduction</h1>
+<p>L'objectif de ce projet est la réalisation d'un solveur de système linéaires utilisant la méthode de Jacobi capable de travailler sur un problème à géométrie non strucurée, et ce en utilisant une architecture multiprocesseur.</p>
+<p>L'outil utilisé pour la génération du problème non structuré est GMSH, qui permet de générer un maillage spatial.</p>
+<p>Pour la gestion Multiprocesseur, le standard MPI est utilisé, ainsi que la bibliothèque Open MPI (v 1.8.2). Le compilateur C++ utlilisé est mpic++</p>
+<p>La résolution du problème posé est faite à l'aide de la méthode de Jacobi par points</p>
+<h1><a class="anchor" id="install_sec"></a>
+Contenu</h1>
+<h2><a class="anchor" id="sub1"></a>
+Fonctionnement du programme</h2>
+<p>Lorsque le programme se lance, pour chaque tâche MPI, le <a class="el" href="main_8cpp.html" title="Programme de résolution parallélisée de problèmes linéaire par la méthode de Jacobi par points...">main.cpp</a> instancie l'objet <a class="el" href="class_probleme.html" title="Classe représentant le problème posé dans son intégralité, vu par une partition. ">Probleme</a> correspondant à la tache MPI qui s'execute.</p>
+<p>Chaque <a class="el" href="class_probleme.html" title="Classe représentant le problème posé dans son intégralité, vu par une partition. ">Probleme</a> instancié initialise ses attributs, dont le <a class="el" href="class_maillage.html" title="Classe représentant le maillage spatial décomposé ">Maillage</a> correspondant au problème complet, mais les matrices de rigidités construites via le parcourt des éléments sont des matrices partielles correspondant aux éléments uniquement liés à la partition étudiée dans cette tache.</p>
+<p>Une fois toutes les matrices des partition calculées, il est possible de résoudre itérativement le système linéaire en effectuant les communications MPI appropriées selon la partition considérée.</p>
+<p>Une fois le critère d'arrêt atteint pour la convergence, le vecteur solution est récupéré, reconstruit, puis sorti dans un fichier texte "u_global".</p>
+<h2><a class="anchor" id="sub2"></a>
+Visualisation des résultats</h2>
+<p>Une fois le progamme éxécuté, celui-ci à écrit deux fichiers de sortie, l'un u_exact contient la solution exacte du problème pour la géométrie considérée l'autre u_global contient le résultat de la résolution du système par Jacobi.</p>
+<p>A l'aide du script MATLAB <a class="el" href="_viewing_8m.html">Viewing.m</a> ,on peut visualiser facilement les deux solutions obtenues et l'erreur absolue, ce qui donne une idée précise de la validité de la solution proposée pour le problème.</p>
+<div class="image">
+<img src="rendu.png"  alt="Rendu du script MATLAB pour un problème à 4 partitions et 1500 points"/>
+</div>
+<h2><a class="anchor" id="sources_sec"></a>
+Sources et fichiers</h2>
+<ul>
+<li>C++ source files<ol type="1">
+<li><a class="el" href="main_8cpp.html" title="Programme de résolution parallélisée de problèmes linéaire par la méthode de Jacobi par points...">main.cpp</a></li>
+<li><a class="el" href="maillage_8cpp.html" title="Source du lecteur de fichier.msh issu de GMSH et parseur pour la résolution. ">maillage.cpp</a></li>
+<li><a class="el" href="probleme_8cpp.html" title="Source des méthodes effectuant la résolution numérique. ">probleme.cpp</a></li>
+<li><a class="el" href="non_parallel_8cpp.html" title="Source des fonctions n&#39;exploitant pas la paraléllisation dans le solveur. ">nonParallel.cpp</a></li>
+</ol>
+</li>
+<li>C++ header files<ol type="1">
+<li><a class="el" href="maillage_8h.html" title="Header du lecteur de fichier.msh issu de GMSH et parseur pour la résolution. ">maillage.h</a></li>
+<li><a class="el" href="probleme_8h.html">probleme.h</a></li>
+<li><a class="el" href="non_parallel_8h.html" title="Header des fonctions n&#39;exploitant pas la paraléllisation dans le solveur. ">nonParallel.h</a></li>
+</ol>
+</li>
+<li>GMSH mesh files<ol type="1">
+<li>testpart.msh</li>
+<li>testpart_basic.msh</li>
+<li>testSimple.msh</li>
+</ol>
+</li>
+<li>Other files<ol type="1">
+<li><a class="el" href="submit__gin_8qsub.html">submit_gin.qsub</a></li>
+<li><a class="el" href="_viewing_8m.html">Viewing.m</a></li>
+<li>makefile </li>
+</ol>
+</li>
+</ul>
+</div></div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Généré le Lundi 5 Janvier 2015 17:53:55 pour Projet de module A1-1 par &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.9.1
+</small></address>
+</body>
+</html>

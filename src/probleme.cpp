@@ -1,4 +1,14 @@
-
+/**
+ * \file probleme.cpp
+ * \brief Source des méthodes effectuant la résolution numérique.
+ * \author Mehdi Ennaïme & Pierre Fournier
+ * \version 1.0
+ * \date 5 Janvier 2015
+ *
+ * Programme utilisant le standard MPI pour paralléliser la résolution d'un problème linéaire par la méthode de Jacobi sur un maillage 
+ * non structuré de type éléments finis.
+ * 
+ */
 #include "../include/probleme.h"
 #include "../include/nonParallel.h"
 #include <stdio.h>
@@ -445,7 +455,7 @@ Probleme::~Probleme()
     void Probleme::Set_maillage (Maillage* _maillage) {
         maillage=_maillage;
     }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
     void Probleme::Set_uexa (VectorXd* _uexa) {
         uexa=_uexa;
     }
@@ -489,13 +499,12 @@ Probleme::~Probleme()
     void Probleme::Set_diag (Eigen::SparseMatrix<double>* _diag) {
         diag=_diag;
     }
+ #endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
-    //** Méthodes GET
-    
     Maillage* Probleme::Get_maillage (){
         return maillage;
     }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
     VectorXd* Probleme::Get_uexa (){
         return uexa;
     }
@@ -539,3 +548,4 @@ Probleme::~Probleme()
     Eigen::SparseMatrix<double>* Probleme::Get_diag () {
         return diag;
     }
+ #endif /* DOXYGEN_SHOULD_SKIP_THIS */

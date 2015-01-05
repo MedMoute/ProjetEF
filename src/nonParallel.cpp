@@ -1,3 +1,8 @@
+/*!
+ * \file nonParallel.cpp
+ * \brief Source des fonctions n'exploitant pas la paraléllisation dans le solveur
+ * \version 1.0
+ */
 #include <fstream>
 #include <iostream> 
 #include "../include/nonParallel.h"

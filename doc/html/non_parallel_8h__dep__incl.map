@@ -1,0 +1,5 @@
+<map id="C:/cygwin64/home/Med/projetEF/include/nonParallel.h" name="C:/cygwin64/home/Med/projetEF/include/nonParallel.h">
+<area shape="rect" id="node2" href="$main_8cpp.html" title="Programme de résolution parallélisée de problèmes linéaire par la méthode de Jacobi par points..." alt="" coords="5,95,164,136"/>
+<area shape="rect" id="node3" href="$non_parallel_8cpp.html" title="Source des fonctions n&#39;exploitant pas la paraléllisation dans le solveur. " alt="" coords="188,95,379,136"/>
+<area shape="rect" id="node4" href="$probleme_8cpp.html" title="Source des méthodes effectuant la résolution numérique. " alt="" coords="403,95,582,136"/>
+</map>

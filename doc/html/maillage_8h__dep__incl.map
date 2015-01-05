@@ -1,0 +1,8 @@
+<map id="C:/cygwin64/home/Med/projetEF/include/maillage.h" name="C:/cygwin64/home/Med/projetEF/include/maillage.h">
+<area shape="rect" id="node2" href="$probleme_8h.html" title="C:/cygwin64/home/Med\l/projetEF/include/probleme.h" alt="" coords="243,95,431,136"/>
+<area shape="rect" id="node4" href="$main_8cpp.html" title="Programme de résolution parallélisée de problèmes linéaire par la méthode de Jacobi par points..." alt="" coords="423,273,582,315"/>
+<area shape="rect" id="node7" href="$maillage_8cpp.html" title="Source du lecteur de fichier.msh issu de GMSH et parseur pour la résolution. " alt="" coords="539,95,714,136"/>
+<area shape="rect" id="node3" href="$non_parallel_8h.html" title="Header des fonctions n&#39;exploitant pas la paraléllisation dans le solveur. " alt="" coords="206,184,405,225"/>
+<area shape="rect" id="node6" href="$probleme_8cpp.html" title="Source des méthodes effectuant la résolution numérique. " alt="" coords="5,273,184,315"/>
+<area shape="rect" id="node5" href="$non_parallel_8cpp.html" title="Source des fonctions n&#39;exploitant pas la paraléllisation dans le solveur. " alt="" coords="209,273,399,315"/>
+</map>

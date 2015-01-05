@@ -1,3 +1,10 @@
+
+/*!
+ * \file maillage.cpp
+ * \brief Source du lecteur de fichier.msh issu de GMSH et parseur pour la résolution
+ * \version 1.0
+ */
+
 #include "../include/maillage.h"
 #include <string>
 #include <sstream>
@@ -206,7 +213,7 @@ int type2nnodes(int type) {
   void Maillage::Set_n_nodes (int _n_nodes) {
     n_nodes=_n_nodes;
   }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
   void Maillage::Set_n_elems (int _n_elems) {
     n_elems=_n_elems;
   }
@@ -254,13 +261,13 @@ int type2nnodes(int type) {
   void Maillage::Set_partition_ref (int* _partition_ref) {
     partition_ref=_partition_ref;
   }
-
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */
 
   //** Méthodes GET
   int Maillage::Get_n_nodes () {
     return n_nodes;
   }
-
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
   int Maillage::Get_n_elems () {
     return n_elems;
   }
@@ -309,3 +316,4 @@ int type2nnodes(int type) {
     return partition_ref;
   }
 
+#endif /* DOXYGEN_SHOULD_SKIP_THIS */

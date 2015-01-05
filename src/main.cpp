@@ -1,10 +1,23 @@
-#include <mpi.h>
+/**
+ * \file main.cpp
+ * \brief Programme de résolution parallélisée de problèmes linéaire par la méthode de Jacobi par points.
+ * \author Mehdi Ennaïme & Pierre Fournier
+ * \version 1.0
+ * \date 5 Janvier 2015
+ *
+ * Programme utilisant le standard MPI pour paralléliser la résolution d'un problème linéaire par la méthode de Jacobi sur un maillage 
+ * non structuré de type éléments finis.
+ * 
+ */
+
+ #include <mpi.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
 #include "../include/maillage.h"
 #include "../include/probleme.h"
 #include "../include/nonParallel.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -187,7 +200,7 @@ int main(int argc, char *argv[])
         convergence = ( diffnorm < eps );
 
         /* Affichage pour le processus 0 de la difference */
-        if (rang == 0) 
+        if (rang == 0&& it%100==0) 
         {
             cout<<"Iteration "<<it<<" : Erreur_globale = "<<diffnorm<<endl;
         }
@@ -239,3 +252,67 @@ int main(int argc, char *argv[])
 }
 
 
+// Le contenu qui suit sert uniqument à la génération de la page d'index du documentation Doxygen
+/*! \mainpage Accueil
+ *
+ * \section intro_sec Introduction
+ *
+ * L'objectif de ce projet est la réalisation d'un solveur de système linéaires
+ * utilisant la méthode de Jacobi capable de travailler sur un problème à géométrie non strucurée, et ce
+ * en utilisant une architecture multiprocesseur.
+ *
+ * L'outil utilisé pour la génération du problème non structuré est GMSH, qui permet de
+ * générer un maillage spatial.
+ *
+ * Pour la gestion Multiprocesseur, le standard MPI est utilisé, ainsi que la bibliothèque Open MPI (v 1.8.2).
+ *  Le compilateur C++ utlilisé est mpic++
+ *
+ * La résolution du problème posé est faite à l'aide de la méthode de Jacobi par points
+ *
+ * \section install_sec Contenu
+ *
+ * \subsection sub1 Fonctionnement du programme 
+ *
+ *Lorsque le programme se lance, pour chaque tâche MPI, le main.cpp instancie l'objet Probleme correspondant à la
+ * tache MPI qui s'execute. 
+ *
+ * Chaque Probleme instancié initialise ses attributs, dont le Maillage correspondant au problème complet, mais les 
+ * matrices de rigidités construites via le parcourt des éléments sont des matrices partielles correspondant aux éléments uniquement liés à la partition étudiée dans cette tache.
+ *
+ * Une fois toutes les matrices des partition calculées, il est possible de résoudre itérativement le système linéaire en effectuant les communications MPI
+ * appropriées selon la partition considérée.
+ * 
+ * Une fois le critère d'arrêt atteint pour la convergence, le vecteur solution est récupéré, reconstruit, puis sorti dans un fichier texte "u_global".
+ *
+ *\subsection sub2 Visualisation des résultats
+ *
+ * Une fois le progamme éxécuté, celui-ci à écrit deux fichiers de sortie, l'un u_exact contient la solution exacte du problème pour la géométrie considérée
+ * l'autre u_global contient le résultat de la résolution du système par Jacobi.
+ * 
+ * A l'aide du script MATLAB Viewing.m ,on peut visualiser facilement les deux solutions obtenues et l'erreur absolue, ce qui donne une
+ * idée précise de la validité de la solution proposée pour le problème.
+ *
+ * ![Rendu du script MATLAB pour un problème à 4 partitions et 1500 points](rendu.png)
+ *
+ * \subsection sources_sec Sources et fichiers
+ *  - C++ source files
+ *      -# main.cpp
+ *      -# maillage.cpp
+ *      -# probleme.cpp
+ *      -# nonParallel.cpp
+ *
+ *  - C++ header files
+ *      -# maillage.h
+ *      -# probleme.h
+ *      -# nonParallel.h
+ *
+ *  - GMSH mesh files
+ *      -# testpart.msh
+ *      -# testpart_basic.msh
+ *      -# testSimple.msh
+ *
+ *  - Other files
+ *      -# submit_gin.qsub
+ *      -# Viewing.m
+ *      -# makefile
+ */
