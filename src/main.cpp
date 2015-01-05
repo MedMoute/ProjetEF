@@ -62,6 +62,10 @@ int main(int argc, char *argv[])
     u_exact = *(mon_probleme.Get_uexa());
     diag_inv= *(mon_probleme.Get_diag());
 
+    /* Initialisation des donnes globales qui doivent être obtenues par réduction dans le cas parallele
+     * et sont égales aux données locales dans le cas non parallele 
+     */
+
     Eigen::VectorXd second_membre_global(mon_maillage.Get_n_nodes());
     Eigen::MatrixXd K_total(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
     Eigen::MatrixXd diag_global(mon_maillage.Get_n_nodes(),mon_maillage.Get_n_nodes());
@@ -71,6 +75,9 @@ int main(int argc, char *argv[])
       {
         std::cout<<" on est bien en parallele"<<std::endl;
       MPI_Allreduce(second_membre.data(),second_membre_global.data(),second_membre.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      /* L'attribut data permettant l'acces à l'adresse dans la libraire eigen ne peut etre utilisee qu'avec
+       * des matrices denses, d'ou la conversion préalable pour mat_rigidite et diag_inv.
+       */
       d_mat_rigidite_local = Eigen::MatrixXd(mat_rigidite);
       MPI_Allreduce(d_mat_rigidite_local.data(),K_total.data(),d_mat_rigidite_local.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       diag_inv_local = Eigen::MatrixXd(diag_inv);
@@ -121,6 +128,9 @@ int main(int argc, char *argv[])
         /* Echange des points aux interfaces pour u a l'iteration n */
         if (PARALLELE)
         {
+            /* Chaque processus stocke dans un vecteur temporaire les valeurs qu'il doit envoyer.
+             * Seul le processus de l'interface envoie à plusieurs autres processus.
+             */
             vector<double> valeurs_a_envoyer;
             if (rang!=0)
             {
@@ -136,8 +146,12 @@ int main(int argc, char *argv[])
                 for (int num_proc=1;num_proc<nb_procs;num_proc++)
                 {
                     int taille = voisins_interface[num_proc-1].size();
+                    /* On stocke les valeurs reçues dans un vecteur temporaire également, écrasé à chaque itération */
                     vector<double> temp(taille);
                     MPI_Recv(&temp[0],taille,MPI_DOUBLE,num_proc,0,MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+                    /* Puis on met à jour le vecteur solution sur chaque processeur car on sait à quels sommets 
+                     * correspondent les valeurs triées que l'on vient d'obtenir dans la communication 
+                     */
                     for (int ind=0;ind<taille;ind++)
                     {
                         u.coeffRef(voisins_interface[num_proc-1][ind]-1,0)=temp[ind];
@@ -184,7 +198,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        /* Calcul de l'erreur sur tous les sous-domaines */
+        /* Calcul de l'erreur sur tous les sous-domaines par réduction */
         if (PARALLELE)
         {
             MPI_Allreduce( &erreur_locale, &diffnorm, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
@@ -208,6 +222,7 @@ int main(int argc, char *argv[])
 
     Eigen::VectorXd u_global(mon_maillage.Get_n_nodes());
 
+    /* Calcul par réduction du vecteur global qui est la somme de tous dans le cas parallele */
     if (PARALLELE)
     {
         MPI_Allreduce(u.data(),u_global.data(),u.size(),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);

@@ -51,12 +51,12 @@ Probleme::Probleme(Maillage monMaillage, int rang)
 
     for (int i = 0; i < maillage->Get_nb_partitions(); i++) 
     {
-        voisins_interface.push_back(vector<int>()); // Add an empty row
+        voisins_interface.push_back(vector<int>()); 
     }
     
     for (int i = 0; i < maillage->Get_nb_partitions(); i++) 
     {
-        voisins_partition.push_back(vector<int>()); // Add an empty row
+        voisins_partition.push_back(vector<int>()); 
     }
 
     for (int ind_triangle=0;ind_triangle<maillage->Get_n_triangles();ind_triangle++)
@@ -211,10 +211,12 @@ Probleme::Probleme(Maillage monMaillage, int rang)
     /* Assemblage de la matrice de rigiditÃ© par parcours de tous les triangles */
 
     assemblage(rang);
+
+    /* Calcul du second membre avant pseudo élimination par l'intermédiaire de la matrice de masse */
+
     *felim = (*p_M)*(*felim); 
 
-
-    /* On garde en mÃ©moire la matrice assemblÃ©e avant pseudo Ã©limination pour calculer l'erreur H1 plus tard */
+    /* Second membre prenant en compte les conditions aux bords */
 
     *felim=*felim-(*p_K) * (*g);
 
@@ -317,6 +319,7 @@ void Probleme::assemblage(int rang)
         double s=(a+b+c)/2;
         double aire_triangle = sqrt(s*(s-a)*(s-b)*(s-c));
 
+        /* Creation et calcul de la matrice de masse elementaire pour le triangle de la boucle */
         
         double *p_M_elem;
         p_M_elem = new double[9];
@@ -335,12 +338,17 @@ void Probleme::assemblage(int rang)
             }
         }
 
+        /* assemblage de la matrice de masse */
+
         for(int i=0;i<3;i++)
         {
             int ind_global_1=maillage->Get_triangles_sommets()[3*ind_triangle+i];
             for(int j=0;j<3;j++)
             {
                 int ind_global_2=maillage->Get_triangles_sommets()[3*ind_triangle+j];
+                /* La condition dans la version parallele doit faire en sorte que les contributions ne soient bien
+                 * qu'une seule fois
+                 */
                 if (!PARALLELE || partition_noeud[ind_global_1-1]==rang)
                 {
                     double AddedCoeff = p_M_elem[3*i+j];
@@ -352,14 +360,15 @@ void Probleme::assemblage(int rang)
         delete p_M_elem;
         p_M_elem=0;
 
-        /* Calcul des matrices Ã©lÃ©mentaires */
-
-        /* Creation de la matrice elementaire pour le triangle de la boucle */
+        /* Creation des matrices de rigidite elementaires */
 
         double *p_K_elem;
         p_K_elem = new double[9];
 
         double tab_interm[] = {-y23,x23,y13,-x13,-y12,x12};
+
+        /*Remplissage des matrices élémentaires */
+        
         mat_K_elem(tab_interm, p_K_elem, aire_triangle);
 
         /* Assemblage de p_K Ã  partir de chaque matrice Ã©lÃ©mentaire */
